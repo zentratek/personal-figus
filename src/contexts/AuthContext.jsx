@@ -5,8 +5,8 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from '../services/firebase';
+import { auth } from '../services/firebase';
+import { createOrUpdateUserProfile } from '../services/userService';
 
 const AuthContext = createContext();
 
@@ -30,32 +30,12 @@ export function AuthProvider({ children }) {
   }, []);
 
   const ensureUserDocument = async (firebaseUser) => {
-    const userRef = doc(db, 'users', firebaseUser.uid);
-    const userSnap = await getDoc(userRef);
-
-    if (!userSnap.exists()) {
-      // Create user document on first login
-      await setDoc(userRef, {
-        uid: firebaseUser.uid,
-        email: firebaseUser.email,
-        displayName: firebaseUser.displayName,
-        photoURL: firebaseUser.photoURL,
-        createdAt: serverTimestamp(),
-        lastLoginAt: serverTimestamp(),
-        groups: [], // Empty groups array
-        stats: {
-          totalStickers: 0,
-          needed: 0,
-          repeated: 0,
-          completionPercentage: 0
-        }
-      });
-    } else {
-      // Update last login
-      await setDoc(userRef, {
-        lastLoginAt: serverTimestamp()
-      }, { merge: true });
-    }
+    // Use userService to create or update user profile
+    await createOrUpdateUserProfile(firebaseUser.uid, {
+      displayName: firebaseUser.displayName,
+      email: firebaseUser.email,
+      photoURL: firebaseUser.photoURL
+    });
   };
 
   const signInWithGoogle = async () => {

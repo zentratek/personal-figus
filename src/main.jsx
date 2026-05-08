@@ -5,7 +5,8 @@ import { AuthProvider } from './contexts/AuthContext'
 import { LoginScreen } from './screens/LoginScreen'
 import { HomeScreen } from './screens/HomeScreen'
 import { AlbumScreen } from './screens/AlbumScreen'
-import { MatchesScreen } from './screens/MatchesScreen'
+import { GroupScreen } from './screens/GroupScreen'
+import { GroupSetupScreen } from './screens/GroupSetupScreen'
 import { ProfileScreen } from './screens/ProfileScreen'
 import { ProtectedRoute } from './components/common/ProtectedRoute'
 import './index.css'
@@ -33,10 +34,18 @@ createRoot(document.getElementById('root')).render(
             }
           />
           <Route
-            path="/matches"
+            path="/grupo"
             element={
               <ProtectedRoute>
-                <MatchesScreen />
+                <GroupScreen />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/grupo/setup"
+            element={
+              <ProtectedRoute>
+                <GroupSetupScreen />
               </ProtectedRoute>
             }
           />
