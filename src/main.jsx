@@ -7,6 +7,7 @@ import { HomeScreen } from './screens/HomeScreen'
 import { AlbumScreen } from './screens/AlbumScreen'
 import { GroupScreen } from './screens/GroupScreen'
 import { GroupSetupScreen } from './screens/GroupSetupScreen'
+import { TradesScreen } from './screens/TradesScreen'
 import { ProfileScreen } from './screens/ProfileScreen'
 import { ProtectedRoute } from './components/common/ProtectedRoute'
 import './index.css'
@@ -46,6 +47,14 @@ createRoot(document.getElementById('root')).render(
             element={
               <ProtectedRoute>
                 <GroupSetupScreen />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cambios"
+            element={
+              <ProtectedRoute>
+                <TradesScreen />
               </ProtectedRoute>
             }
           />

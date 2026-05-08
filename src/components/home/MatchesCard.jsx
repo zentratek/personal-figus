@@ -1,12 +1,63 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { getUserProfile } from '../../services/userService';
+import { findMatches } from '../../services/tradeService';
+
 /**
  * MatchesCard - Shows today's possible trades
- * Phase 5: Placeholder with mock data
- * Phase 6: Real matching algorithm
+ * Phase 7: Real matching algorithm with group members
  */
 export function MatchesCard() {
-  const handleClick = () => {
-    alert('Próximamente: ¡Sistema de intercambios con tus amigos!');
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [matchCount, setMatchCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadMatchCount();
+  }, [user.uid]);
+
+  const loadMatchCount = async () => {
+    try {
+      const profile = await getUserProfile(user.uid);
+
+      if (!profile?.groupId) {
+        setLoading(false);
+        return;
+      }
+
+      const matches = await findMatches(user.uid, profile.groupId);
+      setMatchCount(matches.length);
+    } catch (error) {
+      console.error('Error loading match count:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleClick = () => {
+    navigate('/cambios');
+  };
+
+  if (loading) {
+    return (
+      <button
+        disabled
+        className="w-full p-4 rounded-xl bg-gradient-to-r from-[var(--primary)] to-[#FF5DA8] border-2 border-black shadow-[3px_3px_0_#000] flex items-center gap-4 opacity-50"
+      >
+        <div className="w-12 h-12 rounded-full bg-black flex items-center justify-center flex-shrink-0">
+          <svg className="animate-spin h-5 w-5 text-[var(--lime)]" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+        </div>
+        <div className="flex-1 text-left">
+          <div className="text-sm font-bold text-black">Buscando matches...</div>
+        </div>
+      </button>
+    );
+  }
 
   return (
     <button
@@ -25,7 +76,13 @@ export function MatchesCard() {
       {/* Text */}
       <div className="flex-1 text-left">
         <div className="text-sm font-bold text-black">
-          <span className="text-base">5 cambios posibles</span> con 3 amigos - ahora
+          {matchCount === 0 ? (
+            'No hay matches disponibles'
+          ) : (
+            <>
+              <span className="text-base">{matchCount} {matchCount === 1 ? 'match' : 'matches'}</span> {matchCount === 1 ? 'disponible' : 'disponibles'} - ahora
+            </>
+          )}
         </div>
       </div>
 
