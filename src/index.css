@@ -1,0 +1,37 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Bungee&display=swap');
+
+@theme {
+  --font-sans: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-bungee: 'Bungee', sans-serif;
+}
+
+:root {
+  --bg: #08080F;
+  --surface: #14141F;
+  --surface-2: #1C1C2A;
+  --surface-3: #262638;
+  --border: #2A2A3D;
+  --primary: #FF2D8E;
+  --cyan: #00F0FF;
+  --lime: #C6FF3E;
+  --gold: #FFC700;
+  --red: #FF4D4D;
+  --text: #F5F5FF;
+  --muted: #6E6E85;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  margin: 0;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
