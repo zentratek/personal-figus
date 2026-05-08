@@ -1,18 +1,49 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { AppLayout } from '../components/layout/AppLayout';
 import { AlbumFilters } from '../components/album/AlbumFilters';
 import { StickerCard } from '../components/album/StickerCard';
-import { generateMockStickers, calculateStats } from '../services/mockData';
+import { StickerModal } from '../components/album/StickerModal';
+import { calculateStats } from '../services/mockData';
+import { getUserStickers } from '../services/stickerService';
+import { initializeUserStickers } from '../services/initializeUserStickers';
+import { useAuth } from '../contexts/AuthContext';
 
 export function AlbumScreen() {
-  // Generate mock stickers (regenerates if TEAMS changes)
-  const [stickers, setStickers] = useState(() => generateMockStickers());
+  const { user } = useAuth();
+  const [stickers, setStickers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedSticker, setSelectedSticker] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedTeam, setSelectedTeam] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Debug: Check teams count
-  console.log('Total teams:', stickers.length / 20, 'stickers:', stickers.length);
+  // Load stickers from Firestore
+  useEffect(() => {
+    const loadStickers = async () => {
+      try {
+        console.log('Loading stickers for user:', user.uid);
+        const userStickers = await getUserStickers(user.uid);
+
+        // If no stickers, initialize them
+        if (userStickers.length === 0) {
+          console.log('No stickers found, initializing...');
+          await initializeUserStickers(user.uid);
+          const newStickers = await getUserStickers(user.uid);
+          setStickers(newStickers);
+        } else {
+          console.log('Loaded', userStickers.length, 'stickers');
+          setStickers(userStickers);
+        }
+      } catch (error) {
+        console.error('Error loading stickers:', error);
+        alert('Error al cargar el álbum. Intenta recargar la página.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStickers();
+  }, [user.uid]);
 
   // Filter stickers based on current filters
   const filteredStickers = useMemo(() => {
@@ -46,9 +77,29 @@ export function AlbumScreen() {
   const stats = useMemo(() => calculateStats(stickers), [stickers]);
 
   const handleStickerClick = (sticker) => {
-    // TODO Phase 4: Open edit modal
-    console.log('Sticker clicked:', sticker);
+    setSelectedSticker(sticker);
   };
+
+  const handleStickerUpdate = (updatedSticker) => {
+    setStickers(prev =>
+      prev.map(s => s.id === updatedSticker.id ? updatedSticker : s)
+    );
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <AppLayout title="ÁLBUM">
+        <div className="flex flex-col items-center justify-center h-[60vh]">
+          <svg className="animate-spin h-12 w-12 text-[var(--lime)] mb-4" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+          <p className="text-[var(--muted)] text-lg">Cargando álbum...</p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout title="ÁLBUM">
@@ -112,6 +163,15 @@ export function AlbumScreen() {
           </div>
         )}
       </div>
+
+      {/* Sticker Edit Modal */}
+      {selectedSticker && (
+        <StickerModal
+          sticker={selectedSticker}
+          onClose={() => setSelectedSticker(null)}
+          onUpdate={handleStickerUpdate}
+        />
+      )}
     </AppLayout>
   );
 }
