@@ -4,6 +4,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { LoginScreen } from './screens/LoginScreen'
 import { HomeScreen } from './screens/HomeScreen'
+import { AlbumScreen } from './screens/AlbumScreen'
+import { MatchesScreen } from './screens/MatchesScreen'
+import { ProfileScreen } from './screens/ProfileScreen'
 import { ProtectedRoute } from './components/common/ProtectedRoute'
 import './index.css'
 
@@ -18,6 +21,30 @@ createRoot(document.getElementById('root')).render(
             element={
               <ProtectedRoute>
                 <HomeScreen />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/album"
+            element={
+              <ProtectedRoute>
+                <AlbumScreen />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/matches"
+            element={
+              <ProtectedRoute>
+                <MatchesScreen />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfileScreen />
               </ProtectedRoute>
             }
           />

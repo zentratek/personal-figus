@@ -1,64 +1,39 @@
+import { AppLayout } from '../components/layout/AppLayout';
 import { useAuth } from '../contexts/AuthContext';
 
 export function HomeScreen() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <h1
-            className="text-5xl font-bungee"
-            style={{ color: 'var(--lime)' }}
-          >
-            FIGUS
-          </h1>
+    <AppLayout title="FIGUS">
+      <div className="p-4">
+        {/* Welcome Card */}
+        <div className="bg-[var(--surface)] border-2 border-[var(--border)] rounded-2xl p-6 mb-4">
+          <h2 className="text-2xl font-bold mb-2">
+            ¡Hola, {user?.displayName?.split(' ')[0]}! 👋
+          </h2>
+          <p className="text-[var(--muted)]">
+            Copa Mundial de la FIFA 2026™
+          </p>
+        </div>
 
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-sm text-[var(--muted)]">Hola,</p>
-              <p className="font-bold">{user?.displayName}</p>
-            </div>
-            {user?.photoURL && (
-              <img
-                src={user.photoURL}
-                alt={user.displayName}
-                className="w-12 h-12 rounded-full border-2 border-[var(--primary)]"
-              />
-            )}
-            <button
-              onClick={signOut}
-              className="px-4 py-2 bg-[var(--surface)] border-2 border-[var(--border)] rounded-lg hover:border-[var(--primary)] transition-colors"
-            >
-              Salir
-            </button>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="bg-[var(--surface)] border-2 border-[var(--border)] rounded-xl p-4 text-center">
+            <div className="text-3xl font-bold text-[var(--lime)] mb-1">0</div>
+            <div className="text-sm text-[var(--muted)]">Figuritas</div>
+          </div>
+          <div className="bg-[var(--surface)] border-2 border-[var(--border)] rounded-xl p-4 text-center">
+            <div className="text-3xl font-bold text-[var(--primary)] mb-1">0%</div>
+            <div className="text-sm text-[var(--muted)]">Completado</div>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="bg-[var(--surface)] border-2 border-[var(--border)] rounded-2xl p-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">
-            ¡Bienvenido a Figus! 🎉
-          </h2>
-          <p className="text-xl text-[var(--muted)] mb-6">
-            Phase 1: Authentication ✅ Completa
-          </p>
-          <p className="text-[var(--muted)]">
-            Próximos pasos: Navegación y Layout (Phase 2)
-          </p>
-        </div>
-
-        {/* Debug Info */}
-        <div className="mt-8 p-4 bg-[var(--surface)] border border-[var(--border)] rounded-lg">
-          <p className="text-xs text-[var(--muted)] font-mono">
-            User ID: {user?.uid}
-          </p>
-          <p className="text-xs text-[var(--muted)] font-mono">
-            Email: {user?.email}
-          </p>
-        </div>
+        {/* CTA */}
+        <button className="w-full h-14 bg-[var(--lime)] text-black font-bold rounded-xl border-2 border-black shadow-[4px_4px_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#000] transition-all">
+          Agregar Figuritas
+        </button>
       </div>
-    </div>
+    </AppLayout>
   );
 }
