@@ -3,17 +3,21 @@ import { AppLayout } from '../components/layout/AppLayout';
 import { TopBar } from '../components/layout/TopBar';
 import { NotificationButton } from '../components/common/NotificationButton';
 import { UserAvatar } from '../components/common/UserAvatar';
+import { NotificationPanel } from '../components/notifications/NotificationPanel';
 import { StatsCard } from '../components/home/StatsCard';
 import { ActionButtons } from '../components/home/ActionButtons';
 import { MatchesCard } from '../components/home/MatchesCard';
 import { getUserStickers } from '../services/stickerService';
 import { calculateStats } from '../services/mockData';
+import { subscribeToNotifications, markNotificationAsRead } from '../services/notificationService';
 import { useAuth } from '../contexts/AuthContext';
 
 export function HomeScreen() {
   const { user } = useAuth();
   const [stickers, setStickers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   // Load user stickers from Firestore
   useEffect(() => {
@@ -29,6 +33,27 @@ export function HomeScreen() {
     };
     loadStickers();
   }, [user.uid]);
+
+  // Subscribe to notifications
+  useEffect(() => {
+    const unsubscribe = subscribeToNotifications(user.uid, (notifs) => {
+      setNotifications(notifs);
+    });
+
+    return () => unsubscribe();
+  }, [user.uid]);
+
+  // Handle mark notification as read
+  const handleMarkRead = async (notificationId) => {
+    try {
+      await markNotificationAsRead(notificationId);
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  // Count unread notifications
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   // Calculate stats
   const stats = useMemo(() => calculateStats(stickers), [stickers]);
@@ -86,7 +111,10 @@ export function HomeScreen() {
           }
           right={
             <div className="flex items-center gap-2.5">
-              <NotificationButton count={0} onClick={() => {/* TODO: Open notifications */}} />
+              <NotificationButton
+                count={unreadCount}
+                onClick={() => setShowNotifications(true)}
+              />
               <UserAvatar user={user} />
             </div>
           }
@@ -124,6 +152,14 @@ export function HomeScreen() {
         {/* Future: Group Section (Phase 8) */}
         {/* Future: Streak Section (Phase 6+) */}
       </div>
+
+      {/* Notification Panel */}
+      <NotificationPanel
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+        notifications={notifications}
+        onMarkRead={handleMarkRead}
+      />
     </AppLayout>
   );
 }

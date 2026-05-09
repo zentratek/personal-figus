@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { AppLayout } from '../components/layout/AppLayout';
+import { ShareGroupModal } from '../components/groups/ShareGroupModal';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserGroup, leaveGroup } from '../services/groupService';
 import { getUserProfile } from '../services/userService';
@@ -17,6 +18,7 @@ export function GroupScreen() {
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   useEffect(() => {
     loadGroup();
@@ -41,29 +43,6 @@ export function GroupScreen() {
       console.error('Error loading group:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const copyCode = () => {
-    if (group) {
-      navigator.clipboard.writeText(group.code);
-      toast.success('¡Código copiado al portapapeles!');
-    }
-  };
-
-  const shareCode = async () => {
-    if (!group) return;
-
-    const text = `¡Unite a mi grupo de Figus "${group.name}"! Código: ${group.code}`;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: 'Código de Grupo', text });
-      } catch (err) {
-        console.log('Share cancelled');
-      }
-    } else {
-      copyCode();
     }
   };
 
@@ -124,21 +103,13 @@ export function GroupScreen() {
             </div>
           </div>
 
-          {/* Share Buttons */}
-          <div className="grid grid-cols-2 gap-2.5">
-            <button
-              onClick={copyCode}
-              className="px-3 py-2.5 bg-[var(--surface-3)] border-2 border-[var(--border)] rounded-[10px] text-sm font-bold hover:bg-[var(--border)] transition-colors flex items-center justify-center gap-1.5"
-            >
-              <span>📋</span> Copiar
-            </button>
-            <button
-              onClick={shareCode}
-              className="px-3 py-2.5 bg-[var(--cyan)] text-black border-2 border-black rounded-[10px] text-sm font-bold shadow-[3px_3px_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_#000] transition-all flex items-center justify-center gap-1.5"
-            >
-              <span>📤</span> Invitar
-            </button>
-          </div>
+          {/* Share Button */}
+          <button
+            onClick={() => setShowShareModal(true)}
+            className="w-full px-3 py-2.5 bg-[var(--cyan)] text-black border-2 border-black rounded-[10px] text-sm font-bold shadow-[3px_3px_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_#000] transition-all flex items-center justify-center gap-1.5"
+          >
+            <span>📤</span> Compartir Grupo
+          </button>
         </div>
 
         {/* Group Stats */}
@@ -262,6 +233,14 @@ export function GroupScreen() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <ShareGroupModal
+          group={group}
+          onClose={() => setShowShareModal(false)}
+        />
       )}
     </AppLayout>
   );
