@@ -19,22 +19,22 @@ export function MatchDetailModal({ match, onClose, currentUserId, currentUserNam
       >
         {/* Modal */}
         <div
-          className="bg-[var(--surface)] rounded-t-3xl md:rounded-2xl w-full md:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+          className="bg-[var(--surface)] rounded-t-[20px] md:rounded-2xl w-full md:max-w-xl max-h-[90vh] overflow-hidden flex flex-col border-2 border-[var(--border)]"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="p-4 border-b-2 border-[var(--border)] flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="p-3.5 border-b-2 border-[var(--border)] flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
               {/* Avatar */}
-              <div className="w-12 h-12 rounded-full bg-[var(--lime)] flex items-center justify-center font-bold text-black text-xl">
+              <div className="w-[42px] h-[42px] rounded-[10px] bg-[var(--lime)] flex items-center justify-center font-bold text-black text-lg border-2 border-black shadow-[2px_2px_0_#000]">
                 {match.user.displayName?.charAt(0).toUpperCase()}
               </div>
 
               {/* User Info */}
               <div>
-                <h2 className="text-lg font-bold">{match.user.displayName}</h2>
-                <p className="text-xs text-[var(--muted)]">
-                  {match.user.stats?.completionPct || 0}% del Álbum
+                <h2 className="text-base font-bold">{match.user.displayName}</h2>
+                <p className="text-[11px] text-[var(--muted)] font-mono">
+                  {match.user.stats?.completionPct || 0}% del álbum
                 </p>
               </div>
             </div>
@@ -42,14 +42,14 @@ export function MatchDetailModal({ match, onClose, currentUserId, currentUserNam
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-[var(--surface-2)] flex items-center justify-center hover:bg-[var(--surface-3)] transition-colors"
+              className="w-8 h-8 rounded-lg bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center hover:bg-[var(--surface-3)] transition-colors"
             >
               ✕
             </button>
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-3.5 space-y-3.5">
             {/* Match Score */}
             <div className="p-4 rounded-xl bg-gradient-to-r from-[var(--primary)] to-[#FF5DA8] border-2 border-black text-center">
               <div className="text-3xl font-bold text-black mb-1">

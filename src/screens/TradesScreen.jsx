@@ -92,15 +92,15 @@ export function TradesScreen() {
 
   return (
     <AppLayout title="MATCHMAKER">
-      <div className="p-4 pb-24">
+      <div className="px-4 py-3.5 pb-[100px]">
         {/* Tabs */}
-        <div className="grid grid-cols-2 gap-2 mb-4">
+        <div className="grid grid-cols-2 gap-2 mb-3.5">
           <button
             onClick={() => setSelectedTab('posibles')}
             className={`
-              px-3 py-2 rounded-lg font-bold text-xs transition-all
+              px-2.5 py-1.5 rounded-lg font-bold text-[10px] tracking-wide transition-all
               ${selectedTab === 'posibles'
-                ? 'bg-[var(--lime)] text-black'
+                ? 'bg-[var(--lime)] text-black shadow-[2px_2px_0_#000]'
                 : 'bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--border)]'
               }
             `}
@@ -110,9 +110,9 @@ export function TradesScreen() {
           <button
             onClick={() => setSelectedTab('enviados')}
             className={`
-              px-3 py-2 rounded-lg font-bold text-xs transition-all
+              px-2.5 py-1.5 rounded-lg font-bold text-[10px] tracking-wide transition-all
               ${selectedTab === 'enviados'
-                ? 'bg-[var(--lime)] text-black'
+                ? 'bg-[var(--lime)] text-black shadow-[2px_2px_0_#000]'
                 : 'bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--border)]'
               }
             `}
@@ -122,9 +122,9 @@ export function TradesScreen() {
           <button
             onClick={() => setSelectedTab('recibidos')}
             className={`
-              px-3 py-2 rounded-lg font-bold text-xs transition-all
+              px-2.5 py-1.5 rounded-lg font-bold text-[10px] tracking-wide transition-all
               ${selectedTab === 'recibidos'
-                ? 'bg-[var(--lime)] text-black'
+                ? 'bg-[var(--lime)] text-black shadow-[2px_2px_0_#000]'
                 : 'bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--border)]'
               }
             `}
@@ -134,9 +134,9 @@ export function TradesScreen() {
           <button
             onClick={() => setSelectedTab('hechos')}
             className={`
-              px-3 py-2 rounded-lg font-bold text-xs transition-all
+              px-2.5 py-1.5 rounded-lg font-bold text-[10px] tracking-wide transition-all
               ${selectedTab === 'hechos'
-                ? 'bg-[var(--lime)] text-black'
+                ? 'bg-[var(--lime)] text-black shadow-[2px_2px_0_#000]'
                 : 'bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--border)]'
               }
             `}
@@ -146,7 +146,7 @@ export function TradesScreen() {
         </div>
 
         {/* Helper text */}
-        <p className="text-xs text-[var(--muted)] mb-4 font-mono">
+        <p className="text-[10px] text-[var(--muted)] mb-3.5 font-mono tracking-wide">
           // Seleccioná las figuritas que querés intercambiar haciendo click
         </p>
 
@@ -154,71 +154,71 @@ export function TradesScreen() {
         {selectedTab === 'posibles' && (
           <>
             {matches.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-3.5">
                 {matches.map((match) => (
                   <button
                     key={match.user.id}
                     onClick={() => setSelectedMatch(match)}
-                    className="w-full p-4 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] hover:border-[var(--lime)] transition-colors text-left"
+                    className="w-full p-3.5 rounded-[14px] bg-[var(--surface-2)] border-2 border-[var(--border)] hover:border-[var(--lime)] transition-colors text-left shadow-[4px_4px_0_#000]"
                   >
                     {/* User Info Row */}
-                    <div className="flex items-center gap-3 mb-3">
+                    <div className="flex items-center gap-2.5 mb-3">
                       {/* Avatar */}
-                      <div className="w-10 h-10 rounded-full bg-[var(--lime)] flex items-center justify-center flex-shrink-0 font-bold text-black text-lg">
+                      <div className="w-[42px] h-[42px] rounded-[10px] bg-[var(--lime)] flex items-center justify-center flex-shrink-0 font-bold text-black text-lg border-2 border-black shadow-[2px_2px_0_#000]">
                         {match.user.displayName?.charAt(0).toUpperCase()}
                       </div>
 
                       {/* Name and Album Info */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-sm truncate">{match.user.displayName}</h3>
-                        <p className="text-xs text-[var(--muted)]">
-                          {match.user.stats?.completionPct || 0}% del Álbum - EN LÍNEA
+                        <h3 className="font-bold text-base truncate">{match.user.displayName}</h3>
+                        <p className="text-[11px] text-[var(--muted)] font-mono">
+                          {match.user.stats?.completionPct || 0}% del álbum · EN LÍNEA
                         </p>
                       </div>
 
                       {/* Match Badge */}
-                      <div className="px-3 py-1 bg-[var(--lime)] text-black rounded-lg font-bold text-sm">
-                        {match.iHave.length}+{match.theyHave.length}
+                      <div className="px-2 py-1 bg-[var(--lime)] text-black rounded-md font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] tracking-wide">
+                        {match.iHave.length}↔{match.theyHave.length}
                       </div>
                     </div>
 
                     {/* Tags Row */}
-                    <div className="space-y-2">
+                    <div className="bg-[var(--surface)] border-[1.5px] border-[var(--border)] rounded-[10px] p-2.5 space-y-2">
                       {/* VOS DAS */}
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-[var(--muted)] w-20">VOS DAS</span>
-                        <div className="flex gap-2 flex-wrap">
-                          {match.iHave.slice(0, 5).map(sticker => (
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-[9.5px] font-bold text-[var(--primary)] font-mono tracking-widest w-14">VOS DAS</span>
+                        <div className="flex gap-1.5 flex-wrap">
+                          {match.iHave.slice(0, 4).map(sticker => (
                             <span
                               key={sticker.stickerId}
-                              className="px-2 py-1 bg-[var(--primary)] text-white rounded text-xs font-bold"
+                              className="px-1.5 py-0.5 bg-[var(--primary)] text-white rounded text-[11px] font-bold"
                             >
                               {sticker.number}
                             </span>
                           ))}
-                          {match.iHave.length > 5 && (
-                            <span className="px-2 py-1 bg-[var(--surface-3)] text-[var(--muted)] rounded text-xs">
-                              +{match.iHave.length - 5}
+                          {match.iHave.length > 4 && (
+                            <span className="text-[11px] text-[var(--muted)] font-mono self-center">
+                              +{match.iHave.length - 4}
                             </span>
                           )}
                         </div>
                       </div>
 
                       {/* RECIBES */}
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-[var(--muted)] w-20">RECIBES</span>
-                        <div className="flex gap-2 flex-wrap">
-                          {match.theyHave.slice(0, 5).map(sticker => (
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-[9.5px] font-bold text-[var(--lime)] font-mono tracking-widest w-14">RECIBÍS</span>
+                        <div className="flex gap-1.5 flex-wrap">
+                          {match.theyHave.slice(0, 4).map(sticker => (
                             <span
                               key={sticker.stickerId}
-                              className="px-2 py-1 bg-[var(--lime)] text-black rounded text-xs font-bold"
+                              className="px-1.5 py-0.5 bg-[var(--lime)] text-black rounded text-[11px] font-bold"
                             >
                               {sticker.number}
                             </span>
                           ))}
-                          {match.theyHave.length > 5 && (
-                            <span className="px-2 py-1 bg-[var(--surface-3)] text-[var(--muted)] rounded text-xs">
-                              +{match.theyHave.length - 5}
+                          {match.theyHave.length > 4 && (
+                            <span className="text-[11px] text-[var(--muted)] font-mono self-center">
+                              +{match.theyHave.length - 4}
                             </span>
                           )}
                         </div>
