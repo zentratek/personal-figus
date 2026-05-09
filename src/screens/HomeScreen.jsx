@@ -61,16 +61,16 @@ export function HomeScreen() {
 
   return (
     <AppLayout>
-      <div className="p-4 pb-24 space-y-6">
+      <div className="px-4 py-3.5 pb-[100px] space-y-3.5">
         {/* Header Section */}
         <div>
-          <p className="text-xs text-[var(--muted)] mb-1 font-mono tracking-wide">
+          <p className="text-[10px] text-[var(--muted)] mb-0.5 font-mono tracking-wide uppercase">
             {currentDate}
           </p>
-          <h1 className="text-2xl font-bold leading-tight">
+          <h1 className="text-xl font-bold leading-tight">
             Hola, <span className="text-[var(--primary)]">{firstName}</span>.
           </h1>
-          <p className="text-xl leading-tight">
+          <p className="text-base leading-tight">
             Te faltan <span className="text-[var(--lime)] font-bold">{stats.needed}</span>.
           </p>
         </div>
@@ -83,7 +83,7 @@ export function HomeScreen() {
 
         {/* Matches Section */}
         <div>
-          <p className="text-xs text-[var(--muted)] font-mono mb-2 tracking-wide">
+          <p className="text-[10px] text-[var(--muted)] font-mono mb-1.5 tracking-wide">
             // MATCHES DE HOY
           </p>
           <MatchesCard />

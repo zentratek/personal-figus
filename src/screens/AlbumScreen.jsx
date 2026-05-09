@@ -115,11 +115,11 @@ export function AlbumScreen() {
       />
 
       {/* Grid */}
-      <div className="p-4 pb-24">
+      <div className="px-4 py-3.5 pb-[100px]">
         {filteredStickers.length > 0 ? (
           <>
             {/* Results count */}
-            <div className="mb-4 text-sm text-[var(--muted)]">
+            <div className="mb-3 text-xs text-[var(--muted)] font-mono">
               Mostrando {filteredStickers.length} de {stickers.length} figuritas
               {' • '}
               <span className="text-[var(--cyan)]">
@@ -128,7 +128,7 @@ export function AlbumScreen() {
             </div>
 
             {/* Stickers Grid */}
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2.5">
               {filteredStickers.map(sticker => (
                 <StickerCard
                   key={sticker.id}
@@ -140,10 +140,10 @@ export function AlbumScreen() {
           </>
         ) : (
           // Empty state
-          <div className="flex flex-col items-center justify-center py-16">
-            <div className="text-6xl mb-4 opacity-20">📭</div>
-            <h3 className="text-xl font-bold mb-2">No se encontraron figuritas</h3>
-            <p className="text-[var(--muted)] text-center max-w-md">
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="text-5xl mb-3 opacity-20">📭</div>
+            <h3 className="text-lg font-bold mb-1.5">No se encontraron figuritas</h3>
+            <p className="text-[var(--muted)] text-center max-w-md text-sm">
               {searchQuery
                 ? `No hay resultados para "${searchQuery}"`
                 : selectedTeam !== 'all'
@@ -156,7 +156,7 @@ export function AlbumScreen() {
                 setSelectedTeam('all');
                 setSearchQuery('');
               }}
-              className="mt-6 px-6 py-2 bg-[var(--lime)] text-black font-bold rounded-lg border-2 border-black shadow-[3px_3px_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_#000] transition-all"
+              className="mt-4 px-5 py-2 bg-[var(--lime)] text-black font-bold text-sm rounded-[10px] border-2 border-black shadow-[4px_4px_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_#000] transition-all"
             >
               Limpiar filtros
             </button>
