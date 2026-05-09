@@ -1,5 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { AppLayout } from '../components/layout/AppLayout';
+import { TopBar } from '../components/layout/TopBar';
+import { NotificationButton } from '../components/common/NotificationButton';
+import { UserAvatar } from '../components/common/UserAvatar';
 import { StatsCard } from '../components/home/StatsCard';
 import { ActionButtons } from '../components/home/ActionButtons';
 import { MatchesCard } from '../components/home/MatchesCard';
@@ -60,7 +63,36 @@ export function HomeScreen() {
   }
 
   return (
-    <AppLayout>
+    <AppLayout
+      customTopBar={
+        <TopBar
+          left={
+            <div className="flex items-center gap-3">
+              <img
+                src="/fifa-2026-logo.png"
+                alt="FIFA 2026"
+                className="h-12 w-auto object-contain"
+              />
+              <div
+                className="font-bungee text-2xl tracking-wide"
+                style={{
+                  color: 'var(--primary)',
+                  textShadow: '2px 2px 0 #000',
+                }}
+              >
+                FIGUS
+              </div>
+            </div>
+          }
+          right={
+            <div className="flex items-center gap-2.5">
+              <NotificationButton count={0} onClick={() => {/* TODO: Open notifications */}} />
+              <UserAvatar user={user} />
+            </div>
+          }
+        />
+      }
+    >
       <div className="px-4 py-3.5 pb-[100px] space-y-3.5">
         {/* Header Section */}
         <div>
@@ -71,7 +103,7 @@ export function HomeScreen() {
             Hola, <span className="text-[var(--primary)]">{firstName}</span>.
           </h1>
           <p className="text-base leading-tight">
-            Te faltan <span className="text-[var(--lime)] font-bold">{stats.needed}</span>.
+            Te faltan <span className="text-[var(--lime)] font-bold">{stats.needed} figuras</span>.
           </p>
         </div>
 

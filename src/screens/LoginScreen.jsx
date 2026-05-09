@@ -1,12 +1,19 @@
 import { useAuth } from '../contexts/AuthContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export function LoginScreen() {
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, user } = useAuth();
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Redirect to home if user is already authenticated
+  useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
@@ -14,11 +21,10 @@ export function LoginScreen() {
 
     try {
       await signInWithGoogle();
-      navigate('/'); // Redirect to home after login
+      // Don't navigate here - let useEffect handle it when user state updates
     } catch (err) {
       setError('Error al iniciar sesión. Intentá de nuevo.');
       console.error(err);
-    } finally {
       setLoading(false);
     }
   };
