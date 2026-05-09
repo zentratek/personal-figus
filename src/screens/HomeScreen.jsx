@@ -9,7 +9,7 @@ import { ActionButtons } from '../components/home/ActionButtons';
 import { MatchesCard } from '../components/home/MatchesCard';
 import { getUserStickers } from '../services/stickerService';
 import { calculateStats } from '../services/mockData';
-import { subscribeToNotifications, markNotificationAsRead } from '../services/notificationService';
+import { subscribeToNotifications, markNotificationAsRead, deleteNotification } from '../services/notificationService';
 import { useAuth } from '../contexts/AuthContext';
 
 export function HomeScreen() {
@@ -49,6 +49,15 @@ export function HomeScreen() {
       await markNotificationAsRead(notificationId);
     } catch (error) {
       console.error('Error marking notification as read:', error);
+    }
+  };
+
+  // Handle delete notification
+  const handleDeleteNotification = async (notificationId) => {
+    try {
+      await deleteNotification(notificationId);
+    } catch (error) {
+      console.error('Error deleting notification:', error);
     }
   };
 
@@ -159,6 +168,7 @@ export function HomeScreen() {
         onClose={() => setShowNotifications(false)}
         notifications={notifications}
         onMarkRead={handleMarkRead}
+        onDelete={handleDeleteNotification}
       />
     </AppLayout>
   );

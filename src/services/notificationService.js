@@ -1,4 +1,4 @@
-import { collection, query, where, orderBy, onSnapshot, updateDoc, doc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, updateDoc, doc, addDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase';
 
 /**
@@ -31,6 +31,15 @@ export function subscribeToNotifications(userId, callback) {
 export async function markNotificationAsRead(notificationId) {
   const notifRef = doc(db, 'notifications', notificationId);
   await updateDoc(notifRef, { read: true });
+}
+
+/**
+ * Delete a notification
+ * @param {string} notificationId - Notification document ID
+ */
+export async function deleteNotification(notificationId) {
+  const notifRef = doc(db, 'notifications', notificationId);
+  await deleteDoc(notifRef);
 }
 
 /**

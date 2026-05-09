@@ -6,7 +6,7 @@ import { es } from 'date-fns/locale';
  * NotificationPanel - Side panel for displaying notifications
  * Shows list of notifications with real-time updates
  */
-export function NotificationPanel({ isOpen, onClose, notifications, onMarkRead }) {
+export function NotificationPanel({ isOpen, onClose, notifications, onMarkRead, onDelete }) {
   if (!isOpen) return null;
 
   const getIcon = (type) => {
@@ -67,14 +67,28 @@ export function NotificationPanel({ isOpen, onClose, notifications, onMarkRead }
             notifications.map((notif) => (
               <div
                 key={notif.id}
-                className={`p-3.5 rounded-[12px] border-2 cursor-pointer transition-all ${
+                className={`p-3.5 rounded-[12px] border-2 transition-all relative ${
                   notif.read
                     ? 'bg-[var(--surface)] border-[var(--border)]'
                     : 'bg-[var(--surface-2)] border-[var(--primary)]'
                 }`}
-                onClick={() => !notif.read && onMarkRead(notif.id)}
               >
-                <div className="flex gap-3">
+                {/* Delete button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(notif.id);
+                  }}
+                  className="absolute top-2 right-2 w-6 h-6 rounded-md bg-[var(--surface-3)] border border-[var(--border)] flex items-center justify-center hover:bg-[var(--red)] hover:border-[var(--red)] transition-colors group"
+                  title="Descartar notificación"
+                >
+                  <X className="w-3.5 h-3.5 text-[var(--muted)] group-hover:text-white" />
+                </button>
+
+                <div
+                  className="flex gap-3 cursor-pointer pr-6"
+                  onClick={() => !notif.read && onMarkRead(notif.id)}
+                >
                   <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center border-2 border-black shrink-0"
                     style={{ background: getColor(notif.type), color: '#0A0A14' }}
