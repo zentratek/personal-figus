@@ -13,6 +13,7 @@ import {
 import { db } from './firebase';
 import { getUserStickers } from './stickerService';
 import { getUsersByGroup } from './userService';
+import { createNotification } from './notificationService';
 
 /**
  * Find matches for a user within their group
@@ -122,6 +123,21 @@ export const createTrade = async (
 
   console.log('Created trade:', tradeRef.id);
 
+  // Create notification for recipient
+  await createNotification(
+    toUserId,
+    'trade_received',
+    'Nueva propuesta de intercambio',
+    `${fromUserName} te propuso intercambiar ${offering.length} × ${requesting.length} figuritas`,
+    {
+      tradeId: tradeRef.id,
+      fromUserId,
+      fromUserName,
+      offeringCount: offering.length,
+      requestingCount: requesting.length
+    }
+  );
+
   return {
     id: tradeRef.id,
     ...tradeDoc
@@ -226,6 +242,19 @@ export const cancelTrade = async (tradeId, userId) => {
   }
 
   await updateTradeStatus(tradeId, 'cancelled', userId);
+
+  // Create notification for recipient
+  await createNotification(
+    trade.toUserId,
+    'trade_cancelled',
+    'Propuesta cancelada',
+    `${trade.fromUserName} canceló la propuesta de intercambio`,
+    {
+      tradeId,
+      fromUserId: trade.fromUserId,
+      fromUserName: trade.fromUserName
+    }
+  );
 };
 
 /**
@@ -314,6 +343,19 @@ export const acceptTrade = async (tradeId, userId) => {
     recalculateUserStats(trade.toUserId)
   ]);
 
+  // Create notification for sender
+  await createNotification(
+    trade.fromUserId,
+    'trade_accepted',
+    'Propuesta aceptada!',
+    `${trade.toUserName} aceptó tu propuesta de intercambio`,
+    {
+      tradeId,
+      toUserId: trade.toUserId,
+      toUserName: trade.toUserName
+    }
+  );
+
   console.log('Trade completed and stats updated for both users');
 };
 
@@ -351,6 +393,19 @@ export const rejectTrade = async (tradeId, userId) => {
   }
 
   await updateTradeStatus(tradeId, 'rejected', userId);
+
+  // Create notification for sender
+  await createNotification(
+    trade.fromUserId,
+    'trade_rejected',
+    'Propuesta rechazada',
+    `${trade.toUserName} rechazó tu propuesta de intercambio`,
+    {
+      tradeId,
+      toUserId: trade.toUserId,
+      toUserName: trade.toUserName
+    }
+  );
 };
 
 /**
