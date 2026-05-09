@@ -4,7 +4,8 @@ import { AppLayout } from '../components/layout/AppLayout';
 import { AlbumFilters } from '../components/album/AlbumFilters';
 import { StickerCard } from '../components/album/StickerCard';
 import { StickerModal } from '../components/album/StickerModal';
-import { calculateStats } from '../services/mockData';
+import { TeamSeparator } from '../components/album/TeamSeparator';
+import { calculateStats, TEAMS } from '../services/mockData';
 import { getUserStickers } from '../services/stickerService';
 import { initializeUserStickers } from '../services/initializeUserStickers';
 import { resetUserStickers } from '../services/resetStickers';
@@ -107,6 +108,28 @@ export function AlbumScreen() {
     });
   }, [stickers, selectedStatus, selectedTeam, searchQuery]);
 
+  // Group stickers by team
+  const groupedStickers = useMemo(() => {
+    const groups = [];
+    let currentTeam = null;
+    let currentGroup = null;
+
+    for (const sticker of filteredStickers) {
+      if (sticker.team !== currentTeam) {
+        // Start a new group
+        currentTeam = sticker.team;
+        currentGroup = {
+          team: sticker.team,
+          stickers: [],
+        };
+        groups.push(currentGroup);
+      }
+      currentGroup.stickers.push(sticker);
+    }
+
+    return groups;
+  }, [filteredStickers]);
+
   // Calculate stats
   const stats = useMemo(() => calculateStats(stickers), [stickers]);
 
@@ -161,15 +184,35 @@ export function AlbumScreen() {
               </span>
             </div>
 
-            {/* Stickers Grid */}
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2.5">
-              {filteredStickers.map(sticker => (
-                <StickerCard
-                  key={sticker.id}
-                  sticker={sticker}
-                  onClick={handleStickerClick}
-                />
-              ))}
+            {/* Stickers Grid - Grouped by Team */}
+            <div className="space-y-5">
+              {groupedStickers.map(group => {
+                const team = TEAMS.find(t => t.code === group.team);
+                const have = group.stickers.filter(s => s.status !== 'needed').length;
+
+                return (
+                  <div key={group.team}>
+                    {/* Team Separator */}
+                    <TeamSeparator
+                      teamCode={team?.code || group.team}
+                      teamName={team?.name || group.team}
+                      have={have}
+                      total={group.stickers.length}
+                    />
+
+                    {/* Stickers Grid for this team */}
+                    <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-8 xl:grid-cols-10 gap-2">
+                      {group.stickers.map(sticker => (
+                        <StickerCard
+                          key={sticker.id}
+                          sticker={sticker}
+                          onClick={handleStickerClick}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </>
         ) : (
