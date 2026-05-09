@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { AppLayout } from '../components/layout/AppLayout';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserGroup, leaveGroup } from '../services/groupService';
@@ -46,7 +47,7 @@ export function GroupScreen() {
   const copyCode = () => {
     if (group) {
       navigator.clipboard.writeText(group.code);
-      alert('¡Código copiado al portapapeles!');
+      toast.success('¡Código copiado al portapapeles!');
     }
   };
 
@@ -71,10 +72,11 @@ export function GroupScreen() {
 
     try {
       await leaveGroup(user.uid, group.id);
+      toast.success('Saliste del grupo exitosamente');
       navigate('/grupo/setup');
     } catch (error) {
       console.error('Error leaving group:', error);
-      alert('Error al salir del grupo. Intenta de nuevo.');
+      toast.error('Error al salir del grupo. Intenta de nuevo.');
     }
   };
 

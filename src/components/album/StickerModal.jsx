@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { updateStickerStatus } from '../../services/stickerService';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -32,7 +33,7 @@ export function StickerModal({ sticker, onClose, onUpdate }) {
       onClose();
     } catch (error) {
       console.error('Error updating sticker:', error);
-      alert('Error al guardar. Intenta de nuevo.');
+      toast.error('Error al guardar. Intenta de nuevo.');
     } finally {
       setSaving(false);
     }

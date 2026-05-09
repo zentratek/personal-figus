@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
 import { createGroup } from '../../services/groupService';
 import { useNavigate } from 'react-router-dom';
@@ -59,7 +60,7 @@ export function CreateGroupModal({ onClose }) {
   const copyCode = () => {
     if (createdGroup) {
       navigator.clipboard.writeText(createdGroup.code);
-      alert('¡Código copiado al portapapeles!');
+      toast.success('¡Código copiado al portapapeles!');
     }
   };
 

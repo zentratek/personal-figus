@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { AppLayout } from '../components/layout/AppLayout';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserProfile } from '../services/userService';
@@ -323,10 +324,11 @@ export function TradesScreen() {
                           try {
                             const { cancelTrade } = await import('../services/tradeService');
                             await cancelTrade(trade.id, user.uid);
+                            toast.success('Propuesta cancelada');
                             loadMatches(); // Reload
                           } catch (err) {
                             console.error('Error canceling trade:', err);
-                            alert('Error al cancelar la propuesta');
+                            toast.error('Error al cancelar la propuesta');
                           }
                         }}
                         className="w-full mt-3 py-2 rounded-lg bg-[var(--surface-3)] text-[var(--muted)] text-xs font-bold hover:bg-red-500/20 hover:text-red-500 transition-all"
@@ -345,7 +347,7 @@ export function TradesScreen() {
                             loadMatches(); // Reload
                           } catch (err) {
                             console.error('Error dismissing trade:', err);
-                            alert('Error al descartar la propuesta');
+                            toast.error('Error al descartar la propuesta');
                           }
                         }}
                         className="w-full mt-3 py-2 rounded-lg bg-[var(--surface-3)] text-[var(--muted)] text-xs font-bold hover:bg-[var(--surface-2)] transition-all"
@@ -440,10 +442,11 @@ export function TradesScreen() {
                           try {
                             const { acceptTrade } = await import('../services/tradeService');
                             await acceptTrade(trade.id, user.uid);
+                            toast.success('¡Intercambio aceptado! Las figuritas se actualizaron en tu álbum.');
                             loadMatches(); // Reload
                           } catch (err) {
                             console.error('Error accepting trade:', err);
-                            alert(err.message || 'Error al aceptar el intercambio');
+                            toast.error(err.message || 'Error al aceptar el intercambio');
                             loadMatches(); // Reload even on error to refresh state
                           }
                         }}
@@ -456,10 +459,11 @@ export function TradesScreen() {
                           try {
                             const { rejectTrade } = await import('../services/tradeService');
                             await rejectTrade(trade.id, user.uid);
+                            toast.success('Intercambio rechazado');
                             loadMatches(); // Reload
                           } catch (err) {
                             console.error('Error rejecting trade:', err);
-                            alert(err.message || 'Error al rechazar el intercambio');
+                            toast.error(err.message || 'Error al rechazar el intercambio');
                             loadMatches(); // Reload even on error to refresh state
                           }
                         }}

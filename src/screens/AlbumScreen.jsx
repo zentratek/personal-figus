@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { AppLayout } from '../components/layout/AppLayout';
 import { AlbumFilters } from '../components/album/AlbumFilters';
 import { StickerCard } from '../components/album/StickerCard';
@@ -34,7 +35,10 @@ export function AlbumScreen() {
 
         if (hasOldFormat) {
           console.log('⚠️  Detected old format stickers. Resetting to new FIFA codes...');
-          alert('Detectamos una actualización en los códigos de país (ahora usando códigos oficiales de FIFA). Vamos a reiniciar tu álbum. Esto solo pasa una vez.');
+          toast('Detectamos una actualización en los códigos de país (ahora usando códigos oficiales de FIFA). Vamos a reiniciar tu álbum. Esto solo pasa una vez.', {
+            duration: 5000,
+            icon: '⚠️',
+          });
 
           // Delete all old stickers
           await resetUserStickers(user.uid);
@@ -56,7 +60,7 @@ export function AlbumScreen() {
         }
       } catch (error) {
         console.error('Error loading stickers:', error);
-        alert('Error al cargar el álbum. Intenta recargar la página.');
+        toast.error('Error al cargar el álbum. Intenta recargar la página.');
       } finally {
         setLoading(false);
       }

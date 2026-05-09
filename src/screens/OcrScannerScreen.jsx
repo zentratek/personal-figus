@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { getSticker, updateStickerStatus } from '../services/stickerService';
 
@@ -103,7 +104,7 @@ export function OcrScannerScreen() {
 
       // Check if torch (flash) is supported
       if (!capabilities.torch) {
-        alert('Tu cámara no soporta flash/linterna.');
+        toast.error('Tu cámara no soporta flash/linterna.');
         return;
       }
 
@@ -115,7 +116,7 @@ export function OcrScannerScreen() {
       setFlashEnabled(newFlashState);
     } catch (err) {
       console.error('Flash toggle error:', err);
-      alert('No se pudo activar el flash. Asegurate de que tu dispositivo lo soporte.');
+      toast.error('No se pudo activar el flash. Asegurate de que tu dispositivo lo soporte.');
     }
   };
 
@@ -194,7 +195,9 @@ export function OcrScannerScreen() {
       console.log('Detected stickers:', numbers);
 
       if (numbers.length === 0) {
-        alert(`No se detectaron figuritas válidas.\n\nRespuesta de IA:\n"${text}"\n\nAsegúrate de que los códigos (ej: GER 17) sean visibles en la esquina superior derecha de cada figurita.`);
+        toast.error('No se detectaron figuritas válidas. Asegúrate de que los códigos (ej: GER 17) sean visibles en la esquina superior derecha de cada figurita.', {
+          duration: 4000,
+        });
       } else {
         // Batch mode: accumulate with previous scans (remove duplicates)
         const combined = [...allDetectedNumbers, ...numbers];
@@ -212,7 +215,7 @@ export function OcrScannerScreen() {
       setProgress(100);
     } catch (err) {
       console.error('Vision API error:', err);
-      alert(`Error al escanear: ${err.message}\n\nPor favor intenta de nuevo.`);
+      toast.error(`Error al escanear: ${err.message}. Por favor intenta de nuevo.`);
     } finally {
       setScanning(false);
       setProgress(0);
@@ -267,7 +270,7 @@ export function OcrScannerScreen() {
     console.log('Finishing with numbers:', allDetectedNumbers);
 
     if (allDetectedNumbers.length === 0) {
-      alert('No hay figuritas para agregar al álbum.');
+      toast.error('No hay figuritas para agregar al álbum.');
       stopCamera();
       navigate('/');
       return;
@@ -321,18 +324,19 @@ export function OcrScannerScreen() {
       });
 
       const displayList = sorted.map(s => s.display).join(', ');
-      let message = `✅ Procesadas ${allDetectedNumbers.length} figuritas:\n\n`;
-      if (newCount > 0) message += `🆕 Nuevas: ${newCount}\n`;
-      if (repeatedCount > 0) message += `🔁 Repetidas: ${repeatedCount}\n`;
-      message += `\n${displayList}`;
+      let message = `✅ Procesadas ${allDetectedNumbers.length} figuritas`;
+      if (newCount > 0) message += ` | 🆕 Nuevas: ${newCount}`;
+      if (repeatedCount > 0) message += ` | 🔁 Repetidas: ${repeatedCount}`;
 
-      alert(message);
+      toast.success(message, {
+        duration: 4000,
+      });
 
       stopCamera();
       navigate('/album');
     } catch (error) {
       console.error('Error updating album:', error);
-      alert('Error al actualizar el álbum. Intenta de nuevo.');
+      toast.error('Error al actualizar el álbum. Intenta de nuevo.');
       setScanning(false);
     }
   };
