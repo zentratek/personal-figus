@@ -26,11 +26,15 @@ export function AlbumScreen() {
         const userStickers = await getUserStickers(user.uid);
 
         // Check if data is in old format (contains "-" in stickerId like "ARG-001")
-        const hasOldFormat = userStickers.some(s => s.stickerId && s.stickerId.includes('-'));
+        // OR contains old FIFA codes (SAU, ZAF instead of KSA, RSA)
+        const hasOldFormat = userStickers.some(s =>
+          (s.stickerId && s.stickerId.includes('-')) ||
+          (s.stickerId && (s.stickerId.startsWith('SAU ') || s.stickerId.startsWith('ZAF ')))
+        );
 
         if (hasOldFormat) {
-          console.log('⚠️  Detected old format stickers. Resetting to new format...');
-          alert('Detectamos un cambio en el formato de las figuritas. Vamos a reiniciar tu álbum con el nuevo formato (PAÍS NÚMERO). Esto solo pasa una vez.');
+          console.log('⚠️  Detected old format stickers. Resetting to new FIFA codes...');
+          alert('Detectamos una actualización en los códigos de país (ahora usando códigos oficiales de FIFA). Vamos a reiniciar tu álbum. Esto solo pasa una vez.');
 
           // Delete all old stickers
           await resetUserStickers(user.uid);

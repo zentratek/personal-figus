@@ -1,14 +1,21 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Tesseract from 'tesseract.js';
+import { useAuth } from '../contexts/AuthContext';
+import { updateStickerStatus } from '../services/stickerService';
+
+// Google Gemini Vision API configuration
+const GEMINI_API_KEY = 'AIzaSyDpUrjiO-oILmpRP8TpFamLgvox7Hwfq54';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 /**
  * OcrScannerScreen - Camera interface for scanning sticker packs
  * Phase 1: Basic camera access and capture ✅
- * Phase 2: OCR integration with batch mode
+ * Phase 2: AI Vision integration with Gemini ✅
+ * Note: Uses official FIFA country codes (e.g., KSA, RSA)
  */
 export function OcrScannerScreen() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [cameraActive, setCameraActive] = useState(false);
   const [error, setError] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
@@ -17,10 +24,12 @@ export function OcrScannerScreen() {
   const [progress, setProgress] = useState(0);
   const [allDetectedNumbers, setAllDetectedNumbers] = useState([]); // Batch accumulator
   const [lastScanCount, setLastScanCount] = useState(0);
+  const [flashEnabled, setFlashEnabled] = useState(false);
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
+  const trackRef = useRef(null);
 
   // Start camera on mount
   useEffect(() => {
@@ -30,6 +39,12 @@ export function OcrScannerScreen() {
 
   const startCamera = async () => {
     try {
+      // Check if mediaDevices is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setError('Tu navegador no soporta acceso a la cámara. Intenta usar HTTPS o un navegador más moderno.');
+        return;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: 'environment',  // Use back camera
@@ -41,11 +56,34 @@ export function OcrScannerScreen() {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
+
+        // Store video track for flash control
+        const videoTrack = stream.getVideoTracks()[0];
+        trackRef.current = videoTrack;
+
         setCameraActive(true);
       }
     } catch (err) {
       console.error('Camera access error:', err);
-      setError('No se pudo acceder a la cámara. Verifica los permisos.');
+
+      // Better error messages based on error type
+      let errorMessage = 'No se pudo acceder a la cámara.';
+
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        errorMessage = 'Permiso de cámara denegado. Ve a la configuración de tu navegador y permite el acceso a la cámara.';
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        errorMessage = 'No se encontró una cámara en tu dispositivo.';
+      } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+        errorMessage = 'La cámara está siendo usada por otra aplicación. Cierra otras apps que usen la cámara.';
+      } else if (err.name === 'OverconstrainedError' || err.name === 'ConstraintNotSatisfiedError') {
+        errorMessage = 'Tu cámara no cumple con los requisitos solicitados.';
+      } else if (err.name === 'NotSupportedError') {
+        errorMessage = 'Acceso a cámara no soportado. Asegúrate de estar usando HTTPS (o http://localhost).';
+      } else if (err.name === 'TypeError') {
+        errorMessage = 'Error de configuración. Intenta usar HTTPS o acceder desde http://localhost en lugar de la IP.';
+      }
+
+      setError(errorMessage);
     }
   };
 
@@ -53,6 +91,31 @@ export function OcrScannerScreen() {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
+      trackRef.current = null;
+    }
+  };
+
+  const toggleFlash = async () => {
+    if (!trackRef.current) return;
+
+    try {
+      const capabilities = trackRef.current.getCapabilities();
+
+      // Check if torch (flash) is supported
+      if (!capabilities.torch) {
+        alert('Tu cámara no soporta flash/linterna.');
+        return;
+      }
+
+      const newFlashState = !flashEnabled;
+      await trackRef.current.applyConstraints({
+        advanced: [{ torch: newFlashState }]
+      });
+
+      setFlashEnabled(newFlashState);
+    } catch (err) {
+      console.error('Flash toggle error:', err);
+      alert('No se pudo activar el flash. Asegurate de que tu dispositivo lo soporte.');
     }
   };
 
@@ -74,7 +137,7 @@ export function OcrScannerScreen() {
     const imageData = canvas.toDataURL('image/png');
     setCapturedImage(imageData);
 
-    // Start OCR scanning
+    // Start AI vision scanning automatically
     await scanImage(imageData);
   };
 
@@ -83,40 +146,73 @@ export function OcrScannerScreen() {
     setProgress(0);
 
     try {
-      const { data: { text } } = await Tesseract.recognize(
-        imageData,
-        'eng',
-        {
-          tessedit_char_whitelist: '0123456789', // Only numbers
-          logger: (m) => {
-            if (m.status === 'recognizing text') {
-              setProgress(Math.round(m.progress * 100));
-            }
-          }
-        }
-      );
+      setProgress(30);
 
-      console.log('OCR result:', text);
+      // Extract base64 data (remove data:image/png;base64, prefix)
+      const base64Data = imageData.split(',')[1];
 
-      // Extract sticker numbers (1-960 for Copa Mundial 2026)
-      const numbers = extractStickerNumbers(text);
-      console.log('Detected numbers:', numbers);
+      // Call Gemini Vision API
+      const response = await fetch(GEMINI_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': GEMINI_API_KEY
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              {
+                text: 'Esta es una imagen de figuritas del álbum Panini FIFA World Cup 2026. Cada figurita tiene un código de 3 LETRAS MAYÚSCULAS (país) seguido de un ESPACIO y un NÚMERO (1-20) en la esquina superior derecha. Ejemplos: "GER 17", "AUS 3", "ECU 19", "QAT 8", "PAN 19". Analiza la imagen cuidadosamente y extrae TODOS los códigos que veas. Devuelve SOLAMENTE una lista separada por comas, sin texto adicional. Ejemplo de respuesta correcta: GER 17, AUS 3, ECU 19, QAT 8, PAN 19'
+              },
+              {
+                inline_data: {
+                  mime_type: 'image/png',
+                  data: base64Data
+                }
+              }
+            ]
+          }]
+        })
+      });
 
-      // Batch mode: accumulate with previous scans (remove duplicates)
-      const combined = [...allDetectedNumbers, ...numbers];
-      const unique = [...new Set(combined)];
+      setProgress(60);
 
-      setAllDetectedNumbers(unique);
-      setLastScanCount(numbers.length);
-      setPacksScanned(prev => prev + 1);
-
-      // Show success feedback
-      if (numbers.length === 0) {
-        alert('No se detectaron números. Intenta mejorar la iluminación o ingresá manualmente.');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Gemini API error details:', errorText);
+        throw new Error(`Gemini API error: ${response.status}`);
       }
+
+      const result = await response.json();
+      const text = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+      setProgress(80);
+      console.log('Gemini Vision response:', text);
+
+      // Extract sticker numbers
+      const numbers = extractStickerNumbers(text);
+      console.log('Detected stickers:', numbers);
+
+      if (numbers.length === 0) {
+        alert(`No se detectaron figuritas válidas.\n\nRespuesta de IA:\n"${text}"\n\nAsegúrate de que los códigos (ej: GER 17) sean visibles en la esquina superior derecha de cada figurita.`);
+      } else {
+        // Batch mode: accumulate with previous scans (remove duplicates)
+        const combined = [...allDetectedNumbers, ...numbers];
+        const uniqueMap = new Map();
+        combined.forEach(item => {
+          uniqueMap.set(item.display, item);
+        });
+        const unique = Array.from(uniqueMap.values());
+
+        setAllDetectedNumbers(unique);
+        setLastScanCount(numbers.length);
+        setPacksScanned(prev => prev + 1);
+      }
+
+      setProgress(100);
     } catch (err) {
-      console.error('OCR error:', err);
-      alert('Error al escanear. Intenta de nuevo con mejor iluminación.');
+      console.error('Vision API error:', err);
+      alert(`Error al escanear: ${err.message}\n\nPor favor intenta de nuevo.`);
     } finally {
       setScanning(false);
       setProgress(0);
@@ -167,20 +263,47 @@ export function OcrScannerScreen() {
     setCapturedImage(null);
   };
 
-  const handleFinish = () => {
-    // TODO: Navigate to preview screen with all detected numbers
+  const handleFinish = async () => {
     console.log('Finishing with numbers:', allDetectedNumbers);
 
-    // Sort by country code, then by number
-    const sorted = [...allDetectedNumbers].sort((a, b) => {
-      if (a.code !== b.code) return a.code.localeCompare(b.code);
-      return a.number - b.number;
-    });
+    if (allDetectedNumbers.length === 0) {
+      alert('No hay figuritas para agregar al álbum.');
+      stopCamera();
+      navigate('/');
+      return;
+    }
 
-    const displayList = sorted.map(s => s.display).join(', ');
-    alert(`Detectadas ${allDetectedNumbers.length} figuritas de ${packsScanned} sobres:\n\n${displayList}`);
-    stopCamera();
-    navigate('/');
+    try {
+      // Show loading state
+      setScanning(true);
+      setProgress(0);
+
+      // Update all detected stickers in Firestore
+      const total = allDetectedNumbers.length;
+      for (let i = 0; i < total; i++) {
+        const sticker = allDetectedNumbers[i];
+        await updateStickerStatus(user.uid, sticker.display, 'owned', 1);
+        setProgress(Math.round(((i + 1) / total) * 100));
+      }
+
+      setScanning(false);
+
+      // Sort by country code, then by number
+      const sorted = [...allDetectedNumbers].sort((a, b) => {
+        if (a.code !== b.code) return a.code.localeCompare(b.code);
+        return a.number - b.number;
+      });
+
+      const displayList = sorted.map(s => s.display).join(', ');
+      alert(`✅ Agregadas ${allDetectedNumbers.length} figuritas al álbum:\n\n${displayList}`);
+
+      stopCamera();
+      navigate('/album');
+    } catch (error) {
+      console.error('Error updating album:', error);
+      alert('Error al actualizar el álbum. Intenta de nuevo.');
+      setScanning(false);
+    }
   };
 
   if (error) {
@@ -215,8 +338,8 @@ export function OcrScannerScreen() {
       {/* Hidden canvas for capture */}
       <canvas ref={canvasRef} className="hidden" />
 
-      {/* Captured image preview overlay */}
-      {capturedImage && (
+      {/* Captured image preview (shown briefly during scanning) */}
+      {capturedImage && !scanning && (
         <div className="absolute inset-0 bg-black">
           <img
             src={capturedImage}
@@ -226,8 +349,30 @@ export function OcrScannerScreen() {
         </div>
       )}
 
+      {/* AI Vision scanning overlay */}
+      {scanning && (
+        <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center">
+          <div className="text-6xl mb-4">🔍</div>
+          <h2 className="text-2xl font-bold text-white mb-4">
+            Escaneando con IA...
+          </h2>
+          <div className="w-64 h-3 bg-[var(--surface)] rounded-full overflow-hidden mb-2">
+            <div
+              className="h-full bg-[var(--lime)] transition-all duration-200"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <p className="text-[var(--lime)] font-mono font-bold text-lg">
+            {progress}%
+          </p>
+          <p className="text-[var(--muted)] text-sm mt-2">
+            Detectando códigos de figuritas...
+          </p>
+        </div>
+      )}
+
       {/* Overlay guides and instructions */}
-      {!capturedImage && cameraActive && !scanning && (
+      {!capturedImage && cameraActive && (
         <div className="absolute inset-0 pointer-events-none">
           {/* Guide rectangle */}
           <div className="absolute inset-0 m-8">
@@ -258,53 +403,47 @@ export function OcrScannerScreen() {
           )}
 
           {/* Mini-preview: Total accumulated */}
-          {allDetectedNumbers.length > 0 && (
-            <div className="absolute top-8 left-8 bg-black/80 backdrop-blur-sm px-4 py-2 rounded-xl border-2 border-[var(--lime)]">
-              <p className="text-[var(--lime)] font-mono font-bold text-lg">
-                {allDetectedNumbers.length} figus
-              </p>
-              {lastScanCount > 0 && (
-                <p className="text-[var(--muted)] text-xs">
-                  +{lastScanCount} último escaneo
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+          <div className="absolute top-8 left-8 flex flex-col gap-2 pointer-events-auto">
+            {/* Flash toggle button */}
+            <button
+              onClick={toggleFlash}
+              className={`w-12 h-12 rounded-full border-2 border-black shadow-[4px_4px_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_#000] transition-all flex items-center justify-center text-2xl ${
+                flashEnabled
+                  ? 'bg-[var(--lime)] text-black'
+                  : 'bg-black/80 backdrop-blur-sm text-white'
+              }`}
+              title={flashEnabled ? 'Apagar flash' : 'Encender flash'}
+            >
+              {flashEnabled ? '💡' : '🔦'}
+            </button>
 
-      {/* OCR scanning overlay */}
-      {scanning && (
-        <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center">
-          <div className="text-6xl mb-4">🔍</div>
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Escaneando...
-          </h2>
-          <div className="w-64 h-3 bg-[var(--surface)] rounded-full overflow-hidden mb-2">
-            <div
-              className="h-full bg-[var(--lime)] transition-all duration-200"
-              style={{ width: `${progress}%` }}
-            />
+            {/* Sticker counter */}
+            {allDetectedNumbers.length > 0 && (
+              <div className="bg-black/80 backdrop-blur-sm px-4 py-2 rounded-xl border-2 border-[var(--lime)]">
+                <p className="text-[var(--lime)] font-mono font-bold text-lg">
+                  {allDetectedNumbers.length} figus
+                </p>
+                {lastScanCount > 0 && (
+                  <p className="text-[var(--muted)] text-xs">
+                    +{lastScanCount} último escaneo
+                  </p>
+                )}
+              </div>
+            )}
           </div>
-          <p className="text-[var(--lime)] font-mono font-bold text-lg">
-            {progress}%
-          </p>
-          <p className="text-[var(--muted)] text-sm mt-2">
-            Detectando números...
-          </p>
         </div>
       )}
 
       {/* Controls */}
       <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black/80 to-transparent">
-        {!scanning && (
+        {!capturedImage && !scanning && (
           <>
             <button
               onClick={captureImage}
-              disabled={!cameraActive || scanning}
+              disabled={!cameraActive}
               className="w-full h-16 bg-[var(--primary)] text-black font-bold text-lg rounded-xl border-2 border-black shadow-[4px_4px_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all mb-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {packsScanned === 0 ? 'Capturar Primer Sobre' : 'Capturar Otro Sobre'}
+              {packsScanned === 0 ? 'Escanear Primer Sobre' : 'Escanear Otro Sobre'}
             </button>
 
             <div className="flex gap-3">

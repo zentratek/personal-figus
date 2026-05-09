@@ -46,7 +46,7 @@ export const TEAMS = [
   { code: 'ALG', name: 'Argelia', flagCode: 'dz', color1: '#006233', color2: '#FFFFFF' },
   { code: 'GHA', name: 'Ghana', flagCode: 'gh', color1: '#CE1126', color2: '#FCD116' },
   { code: 'CIV', name: 'Costa de Marfil', flagCode: 'ci', color1: '#F77F00', color2: '#009E60' },
-  { code: 'ZAF', name: 'Sudáfrica', flagCode: 'za', color1: '#007A4D', color2: '#FFB81C' },
+  { code: 'RSA', name: 'Sudáfrica', flagCode: 'za', color1: '#007A4D', color2: '#FFB81C' },
   { code: 'CPV', name: 'Cabo Verde', flagCode: 'cv', color1: '#003893', color2: '#CF2027' },
   { code: 'COD', name: 'R.D. Congo', flagCode: 'cd', color1: '#007FFF', color2: '#F7D618' },
 
@@ -55,7 +55,7 @@ export const TEAMS = [
   { code: 'KOR', name: 'Corea del Sur', flagCode: 'kr', color1: '#003478', color2: '#CD2E3A' },
   { code: 'IRN', name: 'Irán', flagCode: 'ir', color1: '#239F40', color2: '#FFFFFF' },
   { code: 'AUS', name: 'Australia', flagCode: 'au', color1: '#00843D', color2: '#FFCD00' },
-  { code: 'SAU', name: 'Arabia Saudita', flagCode: 'sa', color1: '#165B33', color2: '#FFFFFF' },
+  { code: 'KSA', name: 'Arabia Saudita', flagCode: 'sa', color1: '#165B33', color2: '#FFFFFF' },
   { code: 'QAT', name: 'Qatar', flagCode: 'qa', color1: '#8D1B3D', color2: '#FFFFFF' },
   { code: 'UZB', name: 'Uzbekistán', flagCode: 'uz', color1: '#1EB53A', color2: '#0099B5' },
   { code: 'JOR', name: 'Jordania', flagCode: 'jo', color1: '#CE1126', color2: '#007A3D' },
