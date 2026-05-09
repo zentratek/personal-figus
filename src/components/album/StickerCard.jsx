@@ -26,14 +26,14 @@ export const StickerCard = memo(function StickerCard({ sticker, onClick }) {
       } : {}}
       aria-label={`Sticker ${sticker.number}: ${sticker.playerName}`}
     >
-      {/* Header: Number & Badge */}
+      {/* Header: Sticker ID (e.g., "ARG 1") */}
       <div className="absolute top-0 left-0 right-0 flex justify-between items-start p-1">
-        {/* Número */}
+        {/* Sticker ID */}
         <div className={`
           text-[10px] font-mono font-bold px-1.5 py-0.5 rounded
           ${isOwned ? 'bg-black/30 text-white' : 'bg-[var(--surface-2)] text-[var(--muted)]'}
         `}>
-          #{sticker.number}
+          {sticker.stickerId}
         </div>
 
         {/* Badge especial (escudo) */}

@@ -12,7 +12,7 @@ import { db } from './firebase';
 /**
  * Update a sticker document in Firestore
  * @param {string} userId - User ID
- * @param {string} stickerId - Sticker ID (e.g., "ARG-001")
+ * @param {string} stickerId - Sticker ID (e.g., "ARG 1")
  * @param {object} updates - Fields to update
  */
 export const updateSticker = async (userId, stickerId, updates) => {

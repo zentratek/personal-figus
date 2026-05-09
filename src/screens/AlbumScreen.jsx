@@ -6,6 +6,7 @@ import { StickerModal } from '../components/album/StickerModal';
 import { calculateStats } from '../services/mockData';
 import { getUserStickers } from '../services/stickerService';
 import { initializeUserStickers } from '../services/initializeUserStickers';
+import { resetUserStickers } from '../services/resetStickers';
 import { useAuth } from '../contexts/AuthContext';
 
 export function AlbumScreen() {
@@ -24,13 +25,28 @@ export function AlbumScreen() {
         console.log('Loading stickers for user:', user.uid);
         const userStickers = await getUserStickers(user.uid);
 
-        // If no stickers, initialize them
-        if (userStickers.length === 0) {
+        // Check if data is in old format (contains "-" in stickerId like "ARG-001")
+        const hasOldFormat = userStickers.some(s => s.stickerId && s.stickerId.includes('-'));
+
+        if (hasOldFormat) {
+          console.log('⚠️  Detected old format stickers. Resetting to new format...');
+          alert('Detectamos un cambio en el formato de las figuritas. Vamos a reiniciar tu álbum con el nuevo formato (PAÍS NÚMERO). Esto solo pasa una vez.');
+
+          // Delete all old stickers
+          await resetUserStickers(user.uid);
+
+          // Initialize with new format
+          await initializeUserStickers(user.uid);
+          const newStickers = await getUserStickers(user.uid);
+          setStickers(newStickers);
+        } else if (userStickers.length === 0) {
+          // No stickers at all, initialize them
           console.log('No stickers found, initializing...');
           await initializeUserStickers(user.uid);
           const newStickers = await getUserStickers(user.uid);
           setStickers(newStickers);
         } else {
+          // Valid stickers with new format
           console.log('Loaded', userStickers.length, 'stickers');
           setStickers(userStickers);
         }
@@ -45,9 +61,9 @@ export function AlbumScreen() {
     loadStickers();
   }, [user.uid]);
 
-  // Filter stickers based on current filters
+  // Filter and sort stickers based on current filters
   const filteredStickers = useMemo(() => {
-    return stickers.filter(s => {
+    const filtered = stickers.filter(s => {
       // Status filter
       if (selectedStatus !== 'all' && s.status !== selectedStatus) {
         return false;
@@ -70,6 +86,16 @@ export function AlbumScreen() {
       }
 
       return true;
+    });
+
+    // Sort by team code (alphabetically), then by number (numerically)
+    return filtered.sort((a, b) => {
+      // First, sort by team code
+      if (a.team !== b.team) {
+        return a.team.localeCompare(b.team);
+      }
+      // Then sort by number (numerically, not alphabetically)
+      return a.number - b.number;
     });
   }, [stickers, selectedStatus, selectedTeam, searchQuery]);
 

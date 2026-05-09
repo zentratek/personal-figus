@@ -17,22 +17,22 @@ export const initializeUserStickers = async (userId) => {
   let totalStickers = 0;
 
   TEAMS.forEach(team => {
-    for (let i = 0; i < 20; i++) {
-      const number = team.range[0] + i;
-      const stickerId = `${team.code}-${String(number).padStart(3, '0')}`;
+    for (let i = 1; i <= 20; i++) {
+      const number = i; // Now 1-20 per team
+      const stickerId = `${team.code} ${i}`; // New format: "ARG 1"
       const docId = `${userId}_copa-mundial-fifa-2026_${stickerId}`;
 
       // Determine position and player name
       let position, playerName;
-      if (i === 0) {
+      if (i === 1) {
         position = 'BADGE';
         playerName = `Escudo ${team.name}`;
-      } else if (i === 1) {
+      } else if (i === 2) {
         position = 'GROUP';
         playerName = `Equipo ${team.name}`;
       } else {
         position = ['DEL', 'MED', 'DEF', 'POR'][Math.floor(Math.random() * 4)];
-        playerName = `Jugador ${number}`;
+        playerName = `Jugador ${team.code} ${i}`;
       }
 
       const stickerData = {
@@ -47,7 +47,7 @@ export const initializeUserStickers = async (userId) => {
         flagCode: team.flagCode,
         playerName,
         position,
-        isSpecial: i === 0, // Badge is special
+        isSpecial: i === 1, // Badge is special (now position 1)
         color1: team.color1,
         color2: team.color2,
         createdAt: Timestamp.now(),
