@@ -229,6 +229,32 @@ export const cancelTrade = async (tradeId, userId) => {
 };
 
 /**
+ * Validate that all stickers in the trade are still available
+ * @param {string} userId - User ID
+ * @param {Array} stickersToCheck - Stickers to validate
+ * @returns {Promise<{valid: boolean, missing: Array}>}
+ */
+const validateStickerAvailability = async (userId, stickersToCheck) => {
+  const { getUserStickers } = await import('./stickerService');
+  const userStickers = await getUserStickers(userId);
+  const missing = [];
+
+  for (const sticker of stickersToCheck) {
+    const userSticker = userStickers.find(s => s.stickerId === sticker.stickerId);
+
+    // Check if sticker exists and is repeated (count >= 2)
+    if (!userSticker || userSticker.status !== 'repeated' || userSticker.count < 2) {
+      missing.push(sticker);
+    }
+  }
+
+  return {
+    valid: missing.length === 0,
+    missing
+  };
+};
+
+/**
  * Accept a trade proposal
  * @param {string} tradeId - Trade ID
  * @param {string} userId - User ID (must be recipient)
@@ -253,8 +279,42 @@ export const acceptTrade = async (tradeId, userId) => {
     throw new Error('Can only accept pending trades');
   }
 
+  // Validate that both users still have the stickers available
+  const fromUserValidation = await validateStickerAvailability(trade.fromUserId, trade.offering);
+  const toUserValidation = await validateStickerAvailability(trade.toUserId, trade.requesting);
+
+  if (!fromUserValidation.valid) {
+    throw new Error(`El usuario ${trade.fromUserName} ya no tiene algunas figuritas disponibles: ${fromUserValidation.missing.map(s => s.number).join(', ')}`);
+  }
+
+  if (!toUserValidation.valid) {
+    throw new Error(`Ya no tenés algunas figuritas disponibles: ${toUserValidation.missing.map(s => s.number).join(', ')}`);
+  }
+
   // Mark as completed directly when accepted
   await updateTradeStatus(tradeId, 'completed', userId);
+
+  // Update sticker statuses for both users
+  await updateUserStickersAfterTrade(
+    trade.fromUserId,
+    trade.offering,    // Remove these from fromUser
+    trade.requesting   // Add these to fromUser
+  );
+
+  await updateUserStickersAfterTrade(
+    trade.toUserId,
+    trade.requesting,  // Remove these from toUser
+    trade.offering     // Add these to toUser
+  );
+
+  // Recalculate stats for both users
+  const { recalculateUserStats } = await import('./userService');
+  await Promise.all([
+    recalculateUserStats(trade.fromUserId),
+    recalculateUserStats(trade.toUserId)
+  ]);
+
+  console.log('Trade completed and stats updated for both users');
 };
 
 /**
@@ -286,6 +346,74 @@ export const rejectTrade = async (tradeId, userId) => {
 };
 
 /**
+ * Update user stickers after trade completion
+ * @param {string} userId - User ID
+ * @param {Array} stickersToRemove - Stickers to remove/decrement
+ * @param {Array} stickersToAdd - Stickers to add
+ */
+const updateUserStickersAfterTrade = async (userId, stickersToRemove, stickersToAdd) => {
+  const { getUserStickers } = await import('./stickerService');
+  const { updateSticker } = await import('./stickerService');
+
+  const userStickers = await getUserStickers(userId);
+
+  // Remove/decrement offering stickers
+  for (const stickerToRemove of stickersToRemove) {
+    const userSticker = userStickers.find(s => s.stickerId === stickerToRemove.stickerId);
+
+    if (!userSticker) continue;
+
+    if (userSticker.count > 2) {
+      // If count > 2, just decrement (still repeated)
+      await updateSticker(userId, stickerToRemove.stickerId, {
+        count: userSticker.count - 1,
+        status: 'repeated'
+      });
+    } else if (userSticker.count === 2) {
+      // If count == 2, decrement to 1 (becomes owned)
+      await updateSticker(userId, stickerToRemove.stickerId, {
+        count: 1,
+        status: 'owned'
+      });
+    } else {
+      // If count == 1, this shouldn't happen (can't trade owned stickers)
+      // But just in case, mark as needed
+      await updateSticker(userId, stickerToRemove.stickerId, {
+        count: 0,
+        status: 'needed'
+      });
+    }
+  }
+
+  // Add requesting stickers
+  for (const stickerToAdd of stickersToAdd) {
+    const userSticker = userStickers.find(s => s.stickerId === stickerToAdd.stickerId);
+
+    if (!userSticker) continue;
+
+    if (userSticker.status === 'needed') {
+      // Needed -> Owned
+      await updateSticker(userId, stickerToAdd.stickerId, {
+        count: 1,
+        status: 'owned'
+      });
+    } else if (userSticker.status === 'owned') {
+      // Owned -> Repeated (count 2)
+      await updateSticker(userId, stickerToAdd.stickerId, {
+        count: 2,
+        status: 'repeated'
+      });
+    } else {
+      // Already repeated, increment count
+      await updateSticker(userId, stickerToAdd.stickerId, {
+        count: userSticker.count + 1,
+        status: 'repeated'
+      });
+    }
+  }
+};
+
+/**
  * Mark trade as completed
  * Note: In a real implementation, this would also update sticker statuses
  * @param {string} tradeId - Trade ID
@@ -313,11 +441,18 @@ export const completeTrade = async (tradeId, userId) => {
 
   await updateTradeStatus(tradeId, 'completed', userId);
 
-  // TODO: Update sticker statuses for both users
-  // - Decrement/remove offering stickers from fromUser
-  // - Add requesting stickers to fromUser
-  // - Decrement/remove requesting stickers from toUser
-  // - Add offering stickers to toUser
+  // Update sticker statuses for both users
+  await updateUserStickersAfterTrade(
+    trade.fromUserId,
+    trade.offering,    // Remove these from fromUser
+    trade.requesting   // Add these to fromUser
+  );
+
+  await updateUserStickersAfterTrade(
+    trade.toUserId,
+    trade.requesting,  // Remove these from toUser
+    trade.offering     // Add these to toUser
+  );
 };
 
 /**

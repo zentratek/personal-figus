@@ -93,6 +93,49 @@ export const updateUserGroup = async (uid, groupId, groupCode, groupName) => {
 };
 
 /**
+ * Calculate user stats from their stickers
+ * @param {string} uid - User ID
+ * @returns {Promise<object>} Calculated stats
+ */
+export const calculateUserStats = async (uid) => {
+  const { getUserStickers } = await import('./stickerService');
+  const stickers = await getUserStickers(uid);
+
+  const stats = {
+    needed: 0,
+    owned: 0,
+    repeated: 0,
+    completionPct: 0
+  };
+
+  stickers.forEach(sticker => {
+    if (sticker.status === 'needed') {
+      stats.needed++;
+    } else if (sticker.status === 'owned') {
+      stats.owned++;
+    } else if (sticker.status === 'repeated') {
+      stats.repeated++;
+    }
+  });
+
+  const totalStickers = stickers.length;
+  const ownedAndRepeated = stats.owned + stats.repeated;
+  stats.completionPct = totalStickers > 0 ? Math.round((ownedAndRepeated / totalStickers) * 100) : 0;
+
+  return stats;
+};
+
+/**
+ * Recalculate and update user stats from their current stickers
+ * @param {string} uid - User ID
+ */
+export const recalculateUserStats = async (uid) => {
+  const stats = await calculateUserStats(uid);
+  await updateUserStats(uid, stats);
+  return stats;
+};
+
+/**
  * Update user stats (called after sticker changes)
  * @param {string} uid - User ID
  * @param {object} stats - Stats object with needed, owned, repeated, completionPct

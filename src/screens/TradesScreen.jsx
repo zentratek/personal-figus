@@ -307,6 +307,26 @@ export function TradesScreen() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Cancel button for pending trades */}
+                    {trade.status === 'pending' && (
+                      <button
+                        onClick={async () => {
+                          if (!confirm('¿Querés cancelar esta propuesta?')) return;
+                          try {
+                            const { cancelTrade } = await import('../services/tradeService');
+                            await cancelTrade(trade.id, user.uid);
+                            loadMatches(); // Reload
+                          } catch (err) {
+                            console.error('Error canceling trade:', err);
+                            alert('Error al cancelar la propuesta');
+                          }
+                        }}
+                        className="w-full mt-3 py-2 rounded-lg bg-[var(--surface-3)] text-[var(--muted)] text-xs font-bold hover:bg-red-500/20 hover:text-red-500 transition-all"
+                      >
+                        ✕ CANCELAR PROPUESTA
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
