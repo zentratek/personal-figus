@@ -5,6 +5,7 @@ import {
   query,
   where,
   getDocs,
+  getDoc,
   Timestamp
 } from 'firebase/firestore';
 import { db } from './firebase';
@@ -43,6 +44,27 @@ export const getUserStickers = async (userId) => {
     id: doc.id,
     ...doc.data()
   }));
+};
+
+/**
+ * Get a single sticker by ID
+ * @param {string} userId - User ID
+ * @param {string} stickerId - Sticker ID (e.g., "ARG 1")
+ * @returns {Promise<Object|null>} Sticker object or null if not found
+ */
+export const getSticker = async (userId, stickerId) => {
+  const docId = `${userId}_copa-mundial-fifa-2026_${stickerId}`;
+  const stickerRef = doc(db, 'stickers', docId);
+  const snapshot = await getDoc(stickerRef);
+
+  if (!snapshot.exists()) {
+    return null;
+  }
+
+  return {
+    id: snapshot.id,
+    ...snapshot.data()
+  };
 };
 
 /**

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { updateStickerStatus } from '../services/stickerService';
+import { getSticker, updateStickerStatus } from '../services/stickerService';
 
 // Google Gemini Vision API configuration
 const GEMINI_API_KEY = 'AIzaSyDpUrjiO-oILmpRP8TpFamLgvox7Hwfq54';
@@ -280,9 +280,35 @@ export function OcrScannerScreen() {
 
       // Update all detected stickers in Firestore
       const total = allDetectedNumbers.length;
+      let newCount = 0;
+      let repeatedCount = 0;
+
       for (let i = 0; i < total; i++) {
         const sticker = allDetectedNumbers[i];
-        await updateStickerStatus(user.uid, sticker.display, 'owned', 1);
+
+        // Get current sticker status
+        const currentSticker = await getSticker(user.uid, sticker.display);
+
+        if (!currentSticker) {
+          console.warn(`Sticker ${sticker.display} not found in database`);
+          continue;
+        }
+
+        if (currentSticker.status === 'needed') {
+          // First time getting this sticker
+          await updateStickerStatus(user.uid, sticker.display, 'owned', 1);
+          newCount++;
+        } else if (currentSticker.status === 'owned') {
+          // Already have one, now it's repeated
+          await updateStickerStatus(user.uid, sticker.display, 'repeated', 2);
+          repeatedCount++;
+        } else if (currentSticker.status === 'repeated') {
+          // Already repeated, increment count
+          const newCount = currentSticker.count + 1;
+          await updateStickerStatus(user.uid, sticker.display, 'repeated', newCount);
+          repeatedCount++;
+        }
+
         setProgress(Math.round(((i + 1) / total) * 100));
       }
 
@@ -295,7 +321,12 @@ export function OcrScannerScreen() {
       });
 
       const displayList = sorted.map(s => s.display).join(', ');
-      alert(`✅ Agregadas ${allDetectedNumbers.length} figuritas al álbum:\n\n${displayList}`);
+      let message = `✅ Procesadas ${allDetectedNumbers.length} figuritas:\n\n`;
+      if (newCount > 0) message += `🆕 Nuevas: ${newCount}\n`;
+      if (repeatedCount > 0) message += `🔁 Repetidas: ${repeatedCount}\n`;
+      message += `\n${displayList}`;
+
+      alert(message);
 
       stopCamera();
       navigate('/album');
