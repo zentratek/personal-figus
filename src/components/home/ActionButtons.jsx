@@ -2,14 +2,14 @@ import { useNavigate } from 'react-router-dom';
 
 /**
  * ActionButtons - Quick action buttons for main features
- * - ABRIR SOBRE (Phase 7 - placeholder)
+ * - ABRIR SOBRE (navigates to OCR scanner)
  * - BUSCAR (navigates to album with search)
  */
 export function ActionButtons() {
   const navigate = useNavigate();
 
   const handleAbrirSobre = () => {
-    alert('Próximamente: ¡Abrí sobres y sumá figuritas al álbum!');
+    navigate('/scanner');
   };
 
   const handleBuscar = () => {

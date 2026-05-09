@@ -9,6 +9,7 @@ import { GroupScreen } from './screens/GroupScreen'
 import { GroupSetupScreen } from './screens/GroupSetupScreen'
 import { TradesScreen } from './screens/TradesScreen'
 import { ProfileScreen } from './screens/ProfileScreen'
+import { OcrScannerScreen } from './screens/OcrScannerScreen'
 import { ProtectedRoute } from './components/common/ProtectedRoute'
 import './index.css'
 
@@ -63,6 +64,14 @@ createRoot(document.getElementById('root')).render(
             element={
               <ProtectedRoute>
                 <ProfileScreen />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/scanner"
+            element={
+              <ProtectedRoute>
+                <OcrScannerScreen />
               </ProtectedRoute>
             }
           />
