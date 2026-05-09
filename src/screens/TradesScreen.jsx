@@ -508,7 +508,7 @@ export function TradesScreen() {
                               {isFromMe ? `Con: ${otherUser}` : `De: ${otherUser}`}
                             </h3>
                             <p className="text-xs text-[var(--muted)]">
-                              Completado: {new Date(trade.completedAt?.seconds * 1000).toLocaleDateString('es-AR')}
+                              Completado: {new Date((trade.completedAt?.seconds || trade.updatedAt?.seconds || Date.now() / 1000) * 1000).toLocaleDateString('es-AR')}
                             </p>
                           </div>
                         </div>
