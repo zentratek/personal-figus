@@ -339,7 +339,15 @@ export const rejectTrade = async (tradeId, userId) => {
 
   // Can only reject if pending
   if (trade.status !== 'pending') {
-    throw new Error('Can only reject pending trades');
+    // Provide more helpful error messages based on current status
+    if (trade.status === 'completed') {
+      throw new Error('Este intercambio ya fue aceptado y completado');
+    } else if (trade.status === 'rejected') {
+      throw new Error('Este intercambio ya fue rechazado');
+    } else if (trade.status === 'cancelled') {
+      throw new Error('Este intercambio fue cancelado por el otro usuario');
+    }
+    throw new Error('Este intercambio ya no está disponible');
   }
 
   await updateTradeStatus(tradeId, 'rejected', userId);
@@ -453,6 +461,40 @@ export const completeTrade = async (tradeId, userId) => {
     trade.requesting,  // Remove these from toUser
     trade.offering     // Add these to toUser
   );
+};
+
+/**
+ * Dismiss a trade (hide it from user's view)
+ * @param {string} tradeId - Trade ID
+ * @param {string} userId - User ID
+ */
+export const dismissTrade = async (tradeId, userId) => {
+  const tradeRef = doc(db, 'trades', tradeId);
+  const tradeDoc = await getDoc(tradeRef);
+
+  if (!tradeDoc.exists()) {
+    throw new Error('Trade not found');
+  }
+
+  const trade = tradeDoc.data();
+
+  // User must be part of the trade
+  if (trade.fromUserId !== userId && trade.toUserId !== userId) {
+    throw new Error('Unauthorized');
+  }
+
+  // Add user to dismissedBy array
+  const dismissedBy = trade.dismissedBy || [];
+  if (!dismissedBy.includes(userId)) {
+    dismissedBy.push(userId);
+  }
+
+  await updateDoc(tradeRef, {
+    dismissedBy,
+    updatedAt: Timestamp.now()
+  });
+
+  console.log(`Trade ${tradeId} dismissed by user ${userId}`);
 };
 
 /**

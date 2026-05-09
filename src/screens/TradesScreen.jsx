@@ -40,9 +40,16 @@ export function TradesScreen() {
 
       // Load trades
       const allTrades = await getUserTrades(user.uid);
-      const sent = allTrades.filter(t => t.fromUserId === user.uid && t.status !== 'completed' && t.status !== 'accepted');
-      const received = allTrades.filter(t => t.toUserId === user.uid && t.status === 'pending');
-      const completed = allTrades.filter(t => t.status === 'completed' || t.status === 'accepted');
+
+      // Filter out trades dismissed by current user
+      const notDismissed = allTrades.filter(t => {
+        const dismissedBy = t.dismissedBy || [];
+        return !dismissedBy.includes(user.uid);
+      });
+
+      const sent = notDismissed.filter(t => t.fromUserId === user.uid && t.status !== 'completed' && t.status !== 'accepted');
+      const received = notDismissed.filter(t => t.toUserId === user.uid && t.status === 'pending');
+      const completed = notDismissed.filter(t => t.status === 'completed' || t.status === 'accepted');
       setSentTrades(sent);
       setReceivedTrades(received);
       setCompletedTrades(completed);
@@ -308,7 +315,7 @@ export function TradesScreen() {
                       </div>
                     </div>
 
-                    {/* Cancel button for pending trades */}
+                    {/* Action buttons */}
                     {trade.status === 'pending' && (
                       <button
                         onClick={async () => {
@@ -325,6 +332,25 @@ export function TradesScreen() {
                         className="w-full mt-3 py-2 rounded-lg bg-[var(--surface-3)] text-[var(--muted)] text-xs font-bold hover:bg-red-500/20 hover:text-red-500 transition-all"
                       >
                         ✕ CANCELAR PROPUESTA
+                      </button>
+                    )}
+
+                    {/* Dismiss button for rejected/cancelled trades */}
+                    {(trade.status === 'rejected' || trade.status === 'cancelled') && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            const { dismissTrade } = await import('../services/tradeService');
+                            await dismissTrade(trade.id, user.uid);
+                            loadMatches(); // Reload
+                          } catch (err) {
+                            console.error('Error dismissing trade:', err);
+                            alert('Error al descartar la propuesta');
+                          }
+                        }}
+                        className="w-full mt-3 py-2 rounded-lg bg-[var(--surface-3)] text-[var(--muted)] text-xs font-bold hover:bg-[var(--surface-2)] transition-all"
+                      >
+                        DESCARTAR
                       </button>
                     )}
                   </div>
@@ -417,7 +443,8 @@ export function TradesScreen() {
                             loadMatches(); // Reload
                           } catch (err) {
                             console.error('Error accepting trade:', err);
-                            alert('Error al aceptar el intercambio');
+                            alert(err.message || 'Error al aceptar el intercambio');
+                            loadMatches(); // Reload even on error to refresh state
                           }
                         }}
                         className="flex-1 py-2 rounded-lg bg-[var(--lime)] text-black font-bold shadow-[2px_2px_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_#000] transition-all"
@@ -432,7 +459,8 @@ export function TradesScreen() {
                             loadMatches(); // Reload
                           } catch (err) {
                             console.error('Error rejecting trade:', err);
-                            alert('Error al rechazar el intercambio');
+                            alert(err.message || 'Error al rechazar el intercambio');
+                            loadMatches(); // Reload even on error to refresh state
                           }
                         }}
                         className="flex-1 py-2 rounded-lg bg-[var(--surface-3)] text-[var(--muted)] font-bold hover:bg-red-500/20 hover:text-red-500 transition-all"
