@@ -253,7 +253,8 @@ export const acceptTrade = async (tradeId, userId) => {
     throw new Error('Can only accept pending trades');
   }
 
-  await updateTradeStatus(tradeId, 'accepted', userId);
+  // Mark as completed directly when accepted
+  await updateTradeStatus(tradeId, 'completed', userId);
 };
 
 /**
