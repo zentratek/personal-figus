@@ -271,24 +271,16 @@ Gracias!
 
           {/* QR Code */}
           <div className="bg-white p-4 rounded-xl mb-4">
-            {/* TODO: Reemplazar con imágenes QR reales en /public/ */}
-            <div className="aspect-square bg-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-500 text-sm p-4 text-center">
-              <div className="text-4xl mb-2">📱</div>
-              <p className="font-bold text-black mb-1">QR Bancolombia</p>
-              <p className="text-xs">
-                {selectedTier === 'premium' ? 'Premium - $5,000 COP' : 'VIP - $10,000 COP'}
-              </p>
-              <p className="text-xs mt-2 text-gray-400">
-                (Imagen pendiente)
-              </p>
-            </div>
-            {/* Descomentar cuando estén las imágenes:
             <img
-              src={selectedTier === 'premium' ? '/qr-premium.png' : '/qr-vip.png'}
+              src={(() => {
+                const finalPrice = getPrice(tiers[selectedTier]);
+                if (finalPrice === 5000) return '/qr-5000.png';
+                if (finalPrice === 10000) return '/qr-10000.png';
+                return '/qr-20000.png';
+              })()}
               alt="QR Bancolombia"
               className="w-full rounded-lg"
             />
-            */}
           </div>
 
           <div className="text-center">
