@@ -269,13 +269,26 @@ Gracias!
             </p>
           </div>
 
-          {/* QR Code Placeholder */}
+          {/* QR Code */}
           <div className="bg-white p-4 rounded-xl mb-4">
-            <div className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 text-sm">
-              [Colocar imagen QR aquí]
-              <br />
-              /public/qr-bancolombia.png
+            {/* TODO: Reemplazar con imágenes QR reales en /public/ */}
+            <div className="aspect-square bg-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-500 text-sm p-4 text-center">
+              <div className="text-4xl mb-2">📱</div>
+              <p className="font-bold text-black mb-1">QR Bancolombia</p>
+              <p className="text-xs">
+                {selectedTier === 'premium' ? 'Premium - $5,000 COP' : 'VIP - $10,000 COP'}
+              </p>
+              <p className="text-xs mt-2 text-gray-400">
+                (Imagen pendiente)
+              </p>
             </div>
+            {/* Descomentar cuando estén las imágenes:
+            <img
+              src={selectedTier === 'premium' ? '/qr-premium.png' : '/qr-vip.png'}
+              alt="QR Bancolombia"
+              className="w-full rounded-lg"
+            />
+            */}
           </div>
 
           <div className="text-center">
