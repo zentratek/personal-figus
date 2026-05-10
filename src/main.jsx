@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './contexts/AuthContext'
+import LandingScreen from './screens/LandingScreen'
 import { LoginScreen } from './screens/LoginScreen'
 import { HomeScreen } from './screens/HomeScreen'
 import { AlbumScreen } from './screens/AlbumScreen'
@@ -46,9 +47,10 @@ createRoot(document.getElementById('root')).render(
           }}
         />
         <Routes>
+          <Route path="/" element={<LandingScreen />} />
           <Route path="/login" element={<LoginScreen />} />
           <Route
-            path="/"
+            path="/home"
             element={
               <ProtectedRoute>
                 <HomeScreen />
@@ -103,7 +105,7 @@ createRoot(document.getElementById('root')).render(
               </ProtectedRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

@@ -11,7 +11,7 @@ export function LoginScreen() {
   // Redirect to home if user is already authenticated
   useEffect(() => {
     if (user) {
-      navigate('/', { replace: true });
+      navigate('/home', { replace: true });
     }
   }, [user, navigate]);
 
