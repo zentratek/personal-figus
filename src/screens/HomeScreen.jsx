@@ -7,17 +7,21 @@ import { NotificationPanel } from '../components/notifications/NotificationPanel
 import { StatsCard } from '../components/home/StatsCard';
 import { ActionButtons } from '../components/home/ActionButtons';
 import { MatchesCard } from '../components/home/MatchesCard';
+import { PricingModal } from '../components/subscription/PricingModal';
 import { getUserStickers } from '../services/stickerService';
 import { calculateStats } from '../services/mockData';
 import { subscribeToNotifications, markNotificationAsRead, deleteNotification } from '../services/notificationService';
 import { useAuth } from '../contexts/AuthContext';
+import { useSubscription } from '../hooks/useSubscription';
 
 export function HomeScreen() {
   const { user } = useAuth();
+  const subscription = useSubscription(user?.uid);
   const [stickers, setStickers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showPricingModal, setShowPricingModal] = useState(false);
 
   // Load user stickers from Firestore
   useEffect(() => {
@@ -147,6 +151,29 @@ export function HomeScreen() {
         {/* Stats Card */}
         <StatsCard stats={stats} total={stickers.length} />
 
+        {/* Pricing Promo Card */}
+        {!subscription.loading && subscription.isFree && (
+          <div
+            onClick={() => setShowPricingModal(true)}
+            className="bg-gradient-to-r from-[var(--primary)]/20 to-[var(--lime)]/20 border-2 border-[var(--primary)] rounded-xl p-4 cursor-pointer hover:scale-[1.02] transition-transform"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xl">✨</span>
+                  <p className="font-bold text-[var(--primary)]">Upgrade tu cuenta</p>
+                </div>
+                <p className="text-sm text-[var(--muted)]">
+                  Escaneos ilimitados, grupos sin límite y más
+                </p>
+              </div>
+              <button className="px-4 py-2 bg-[var(--primary)] text-white font-bold rounded-lg border-2 border-black shadow-[3px_3px_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_#000] transition-all">
+                Ver Planes
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Action Buttons */}
         <ActionButtons />
 
@@ -170,6 +197,11 @@ export function HomeScreen() {
         onMarkRead={handleMarkRead}
         onDelete={handleDeleteNotification}
       />
+
+      {/* Pricing Modal */}
+      {showPricingModal && (
+        <PricingModal onClose={() => setShowPricingModal(false)} />
+      )}
     </AppLayout>
   );
 }
