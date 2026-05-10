@@ -238,16 +238,18 @@ export function CreateGroupModal({ onClose }) {
               value={maxMembers}
               onChange={(e) => {
                 const value = e.target.value;
-                if (value === '' || value === '0') {
+                // Allow any input while typing (including incomplete numbers like "1" for "10")
+                if (value === '') {
                   setMaxMembers('');
                 } else {
                   const num = parseInt(value);
-                  if (!isNaN(num) && num >= 2) {
+                  if (!isNaN(num) && num >= 0) {
                     setMaxMembers(num);
                   }
                 }
               }}
               onBlur={() => {
+                // Only validate when user leaves the field
                 if (maxMembers === '' || maxMembers < 2) {
                   setMaxMembers(20);
                 }
