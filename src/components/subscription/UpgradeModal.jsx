@@ -118,7 +118,7 @@ Gracias!
             </label>
             <input
               type="text"
-              placeholder="Ej: CSF2026"
+              placeholder="Ingresá tu código"
               value={promoCode}
               onChange={(e) => setPromoCode(e.target.value)}
               className="w-full px-4 py-3 bg-[var(--bg)] border-2 border-[var(--border)] rounded-xl text-[var(--text)] font-mono uppercase"
