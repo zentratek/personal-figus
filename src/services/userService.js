@@ -43,6 +43,19 @@ export const createOrUpdateUserProfile = async (uid, userData) => {
         repeated: 0,
         completionPct: 0
       },
+      // Initialize subscription (FREE tier by default)
+      subscription: {
+        tier: 'free',
+        ocrScansUsed: 0,
+        ocrScansLimit: 5,
+        validUntil: null,
+        activatedAt: null,
+        activatedBy: null,
+        promoCode: null,
+        amountPaid: null,
+        paymentMethod: null,
+        history: []
+      },
       createdAt: Timestamp.now()
     });
     console.log('Created new user profile:', uid);

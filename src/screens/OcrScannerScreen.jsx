@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { getSticker, updateStickerStatus } from '../services/stickerService';
+import { useSubscription } from '../hooks/useSubscription';
+import { incrementOcrUsage } from '../services/subscriptionService';
+import { UpgradeModal } from '../components/subscription/UpgradeModal';
 
 // Google Gemini Vision API configuration
 const GEMINI_API_KEY = 'AIzaSyDpUrjiO-oILmpRP8TpFamLgvox7Hwfq54';
@@ -17,6 +20,7 @@ const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/
 export function OcrScannerScreen() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const subscription = useSubscription(user?.uid);
   const [cameraActive, setCameraActive] = useState(false);
   const [error, setError] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
@@ -26,6 +30,7 @@ export function OcrScannerScreen() {
   const [allDetectedNumbers, setAllDetectedNumbers] = useState([]); // Batch accumulator
   const [lastScanCount, setLastScanCount] = useState(0);
   const [flashEnabled, setFlashEnabled] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -123,6 +128,13 @@ export function OcrScannerScreen() {
   const captureImage = async () => {
     if (!videoRef.current || !canvasRef.current) return;
 
+    // CHECK PERMISSION BEFORE SCANNING
+    const canScan = await subscription.canUseOcr();
+    if (!canScan) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -210,6 +222,11 @@ export function OcrScannerScreen() {
         setAllDetectedNumbers(unique);
         setLastScanCount(numbers.length);
         setPacksScanned(prev => prev + 1);
+
+        // AFTER successful scan, increment counter (only for non-VIP users)
+        if (!subscription.isVip) {
+          await incrementOcrUsage(user.uid);
+        }
       }
 
       setProgress(100);
@@ -425,6 +442,23 @@ export function OcrScannerScreen() {
               <p className="text-[var(--muted)] text-center text-sm mt-1">
                 Asegurate de tener buena iluminación
               </p>
+
+              {/* OCR Scan Counter */}
+              {!subscription.loading && (
+                <div className="mt-3 pt-3 border-t border-[var(--border)]">
+                  {subscription.isFree && (
+                    <p className="text-sm text-center text-[var(--muted)]">
+                      <span className="text-[var(--lime)] font-bold">{subscription.ocrScansRemaining}</span> escaneos restantes
+                    </p>
+                  )}
+                  {subscription.isVip && (
+                    <div className="flex items-center justify-center gap-2 text-[var(--lime)]">
+                      <span className="font-bold">✨ VIP</span>
+                      <span className="text-sm">OCR ilimitado</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -501,6 +535,15 @@ export function OcrScannerScreen() {
           </>
         )}
       </div>
+
+      {/* Upgrade Modal */}
+      {showUpgradeModal && (
+        <UpgradeModal
+          reason="ocr_limit"
+          currentUsage={subscription.ocrScansUsed}
+          onClose={() => setShowUpgradeModal(false)}
+        />
+      )}
     </div>
   );
 }

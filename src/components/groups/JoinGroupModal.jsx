@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getGroupByCode, joinGroup } from '../../services/groupService';
 import { useNavigate } from 'react-router-dom';
+import { useSubscription } from '../../hooks/useSubscription';
+import { UpgradeModal } from '../subscription/UpgradeModal';
 
 /**
  * JoinGroupModal - Modal for joining an existing group with invite code
@@ -10,11 +12,13 @@ import { useNavigate } from 'react-router-dom';
 export function JoinGroupModal({ onClose }) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const subscription = useSubscription(user?.uid);
   const [code, setCode] = useState('');
   const [groupPreview, setGroupPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState('');
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Auto-format code with dash (XXXX-XXXX)
   const handleCodeChange = (e) => {
@@ -71,6 +75,13 @@ export function JoinGroupModal({ onClose }) {
 
   const handleJoin = async () => {
     if (!groupPreview) return;
+
+    // CHECK if can join another group
+    const canJoin = await subscription.canJoinGroup();
+    if (!canJoin.allowed) {
+      setShowUpgradeModal(true);
+      return;
+    }
 
     setJoining(true);
     setError('');
@@ -210,6 +221,14 @@ export function JoinGroupModal({ onClose }) {
           )}
         </div>
       </div>
+
+      {/* Upgrade Modal */}
+      {showUpgradeModal && (
+        <UpgradeModal
+          reason="group_count_limit"
+          onClose={() => setShowUpgradeModal(false)}
+        />
+      )}
     </div>
   );
 }

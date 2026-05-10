@@ -3,6 +3,8 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
 import { createGroup } from '../../services/groupService';
 import { useNavigate } from 'react-router-dom';
+import { useSubscription } from '../../hooks/useSubscription';
+import { UpgradeModal } from '../subscription/UpgradeModal';
 
 /**
  * CreateGroupModal - Modal for creating a new group
@@ -11,12 +13,14 @@ import { useNavigate } from 'react-router-dom';
 export function CreateGroupModal({ onClose }) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const subscription = useSubscription(user?.uid);
   const [groupName, setGroupName] = useState('');
   const [emoji, setEmoji] = useState('🏆');
   const [maxMembers, setMaxMembers] = useState(20);
   const [creating, setCreating] = useState(false);
   const [createdGroup, setCreatedGroup] = useState(null);
   const [error, setError] = useState('');
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const emojis = ['🏆', '⚽', '🎯', '🔥', '💎', '⭐', '🎮', '🍕'];
 
@@ -31,6 +35,13 @@ export function CreateGroupModal({ onClose }) {
 
     if (groupName.length > 30) {
       setError('El nombre no puede tener más de 30 caracteres');
+      return;
+    }
+
+    // CHECK if can join/create another group
+    const canJoin = await subscription.canJoinGroup();
+    if (!canJoin.allowed) {
+      setShowUpgradeModal(true);
       return;
     }
 
@@ -246,6 +257,14 @@ export function CreateGroupModal({ onClose }) {
           </button>
         </form>
       </div>
+
+      {/* Upgrade Modal */}
+      {showUpgradeModal && (
+        <UpgradeModal
+          reason="group_count_limit"
+          onClose={() => setShowUpgradeModal(false)}
+        />
+      )}
     </div>
   );
 }
