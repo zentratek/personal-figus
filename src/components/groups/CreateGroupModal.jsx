@@ -45,6 +45,9 @@ export function CreateGroupModal({ onClose }) {
       return;
     }
 
+    // Ensure maxMembers has a valid value
+    const finalMaxMembers = maxMembers && maxMembers >= 2 ? maxMembers : 20;
+
     setCreating(true);
 
     try {
@@ -55,7 +58,7 @@ export function CreateGroupModal({ onClose }) {
         {
           name: groupName.trim(),
           emoji,
-          maxMembers
+          maxMembers: finalMaxMembers
         }
       );
 
@@ -233,11 +236,29 @@ export function CreateGroupModal({ onClose }) {
             <input
               type="number"
               value={maxMembers}
-              onChange={(e) => setMaxMembers(parseInt(e.target.value) || 20)}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '' || value === '0') {
+                  setMaxMembers('');
+                } else {
+                  const num = parseInt(value);
+                  if (!isNaN(num) && num >= 2) {
+                    setMaxMembers(num);
+                  }
+                }
+              }}
+              onBlur={() => {
+                if (maxMembers === '' || maxMembers < 2) {
+                  setMaxMembers(20);
+                }
+              }}
               min={2}
-              max={50}
+              placeholder="Ej: 20"
               className="w-full px-4 py-3 bg-[var(--surface-2)] border-2 border-[var(--border)] rounded-lg focus:border-[var(--lime)] focus:outline-none transition-colors"
             />
+            <p className="text-xs text-[var(--muted)] mt-1">
+              Sin límite máximo. Mínimo 2 miembros.
+            </p>
           </div>
 
           {/* Error Message */}
