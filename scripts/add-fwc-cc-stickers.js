@@ -1,15 +1,19 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, writeBatch, doc, Timestamp, getDocs, query, where } from 'firebase/firestore';
+import dotenv from 'dotenv';
 
-// Firebase config
+// Load environment variables
+dotenv.config();
+
+// Firebase config from environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyBwKK7zNEPm5Y5aXGYKyEYWIdVUw7Jrx8w",
-  authDomain: "figus-app-495718.firebaseapp.com",
-  projectId: "figus-app-495718",
-  storageBucket: "figus-app-495718.firebasestorage.app",
-  messagingSenderId: "848663151856",
-  appId: "1:848663151856:web:d0f91f3c2e3a65edbc4f0e",
-  measurementId: "G-RLGTZH79EZ"
+  apiKey: process.env.VITE_FIREBASE_API_KEY,
+  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.VITE_FIREBASE_APP_ID,
+  measurementId: process.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);

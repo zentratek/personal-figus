@@ -8,7 +8,7 @@ import { incrementOcrUsage } from '../services/subscriptionService';
 import { UpgradeModal } from '../components/subscription/UpgradeModal';
 
 // Google Gemini Vision API configuration
-const GEMINI_API_KEY = 'AIzaSyDpUrjiO-oILmpRP8TpFamLgvox7Hwfq54';
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 /**
