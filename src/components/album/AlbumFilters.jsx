@@ -129,6 +129,13 @@ export function AlbumFilters({
                 </option>
               ))}
             </optgroup>
+            <optgroup label="Especiales (2)">
+              {TEAMS.slice(48, 50).map(team => (
+                <option key={team.code} value={team.code}>
+                  {team.name}
+                </option>
+              ))}
+            </optgroup>
           </select>
           {/* Filter Icon */}
           <svg
