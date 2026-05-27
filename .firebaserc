@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "figus-app-495718"
-  }
+  },
+  "targets": {
+    "figus-app-495718": {
+      "hosting": {
+        "app": [
+          "figus-app-495718"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

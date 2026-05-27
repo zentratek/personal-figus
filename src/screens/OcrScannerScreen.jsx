@@ -175,7 +175,7 @@ export function OcrScannerScreen() {
           contents: [{
             parts: [
               {
-                text: 'Esta es una imagen de figuritas del álbum Panini FIFA World Cup 2026. Cada figurita tiene un código de 3 LETRAS MAYÚSCULAS (país) seguido de un ESPACIO y un NÚMERO (1-20) en la esquina superior derecha. Ejemplos: "GER 17", "AUS 3", "ECU 19", "QAT 8", "PAN 19". Analiza la imagen cuidadosamente y extrae TODOS los códigos que veas. Devuelve SOLAMENTE una lista separada por comas, sin texto adicional. Ejemplo de respuesta correcta: GER 17, AUS 3, ECU 19, QAT 8, PAN 19'
+                text: 'Esta es una imagen de figuritas del álbum Panini FIFA World Cup 2026. Cada figurita tiene un código de 2-3 LETRAS MAYÚSCULAS seguido de un ESPACIO y un NÚMERO en la esquina superior derecha. Los códigos pueden ser: (1) Países de 3 letras con números 1-20 (ej: "GER 17", "AUS 3", "ECU 19", "QAT 8", "PAN 19"), (2) "FWC" con números 1-20 (ej: "FWC 1", "FWC 15"), o (3) "CC" con números 1-14 (ej: "CC 1", "CC 7"). Analiza la imagen cuidadosamente y extrae TODOS los códigos que veas. Devuelve SOLAMENTE una lista separada por comas, sin texto adicional. Ejemplo de respuesta correcta: GER 17, AUS 3, FWC 15, CC 7, ECU 19'
               },
               {
                 inline_data: {
@@ -241,22 +241,34 @@ export function OcrScannerScreen() {
   };
 
   const extractStickerNumbers = (text) => {
-    // Pattern: 3 uppercase letters + space/separator + 1-2 digit number
-    // Examples: "GER 17", "AUS 3", "ECU 19"
-    const pattern = /\b([A-Z]{3})\s*(\d{1,2})\b/g;
+    // Pattern: 2-3 uppercase letters + space/separator + 1-2 digit number
+    // Examples: "GER 17", "AUS 3", "ECU 19", "FWC 15", "CC 7"
+    const pattern = /\b([A-Z]{2,3})\s*(\d{1,2})\b/g;
     const matches = [];
     let match;
 
     while ((match = pattern.exec(text)) !== null) {
-      const countryCode = match[1];
+      const code = match[1];
       const number = parseInt(match[2]);
 
-      // Validate: number should be 1-20 (each country has ~20 stickers)
-      if (number >= 1 && number <= 20) {
+      // Validate based on code type
+      let isValid = false;
+      if (code === 'CC') {
+        // Coca-Cola: 1-14
+        isValid = number >= 1 && number <= 14;
+      } else if (code === 'FWC') {
+        // FIFA World Cup: 1-20
+        isValid = number >= 1 && number <= 20;
+      } else if (code.length === 3) {
+        // Country codes: 1-20
+        isValid = number >= 1 && number <= 20;
+      }
+
+      if (isValid) {
         matches.push({
-          code: countryCode,
+          code: code,
           number: number,
-          display: `${countryCode} ${number}`
+          display: `${code} ${number}`
         });
       }
     }

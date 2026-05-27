@@ -3,13 +3,17 @@ import { db } from './firebase';
 import { TEAMS } from './mockData';
 
 /**
- * Initialize all 960 stickers for a new user in Firestore
+ * Initialize all stickers for a new user in Firestore
+ * - 48 teams × 20 stickers = 960 team stickers
+ * - FWC group: 20 stickers
+ * - CC group: 14 stickers
+ * Total: 994 stickers
  * Creates stickers in "needed" status by default
  * @param {string} userId - User ID
  * @returns {Promise<void>}
  */
 export const initializeUserStickers = async (userId) => {
-  console.log(`Initializing 960 stickers for user ${userId}...`);
+  console.log(`Initializing stickers for user ${userId}...`);
 
   const batches = [];
   let currentBatch = writeBatch(db);
@@ -17,22 +21,35 @@ export const initializeUserStickers = async (userId) => {
   let totalStickers = 0;
 
   TEAMS.forEach(team => {
-    for (let i = 1; i <= 20; i++) {
-      const number = i; // Now 1-20 per team
-      const stickerId = `${team.code} ${i}`; // New format: "ARG 1"
+    // Determine max stickers for this team/group
+    let maxStickers = 20; // Default for teams
+    if (team.code === 'CC') {
+      maxStickers = 14; // Coca-Cola has only 14
+    }
+
+    for (let i = 1; i <= maxStickers; i++) {
+      const number = i;
+      const stickerId = `${team.code} ${i}`; // Format: "ARG 1", "FWC 1", "CC 1"
       const docId = `${userId}_copa-mundial-fifa-2026_${stickerId}`;
 
       // Determine position and player name
       let position, playerName;
-      if (i === 1) {
-        position = 'BADGE';
-        playerName = `Escudo ${team.name}`;
-      } else if (i === 2) {
-        position = 'GROUP';
-        playerName = `Equipo ${team.name}`;
+
+      // Special groups (FWC, CC) don't have BADGE/GROUP structure
+      if (team.code === 'FWC' || team.code === 'CC') {
+        position = 'SPECIAL';
+        playerName = `${team.name} ${i}`;
       } else {
-        position = ['DEL', 'MED', 'DEF', 'POR'][Math.floor(Math.random() * 4)];
-        playerName = `Jugador ${team.code} ${i}`;
+        if (i === 1) {
+          position = 'BADGE';
+          playerName = `Escudo ${team.name}`;
+        } else if (i === 2) {
+          position = 'GROUP';
+          playerName = `Equipo ${team.name}`;
+        } else {
+          position = ['DEL', 'MED', 'DEF', 'POR'][Math.floor(Math.random() * 4)];
+          playerName = `Jugador ${team.code} ${i}`;
+        }
       }
 
       const stickerData = {
@@ -47,7 +64,7 @@ export const initializeUserStickers = async (userId) => {
         flagCode: team.flagCode,
         playerName,
         position,
-        isSpecial: i === 1, // Badge is special (now position 1)
+        isSpecial: i === 1 && team.code !== 'FWC' && team.code !== 'CC', // Badge is special (position 1) for teams only
         color1: team.color1,
         color2: team.color2,
         createdAt: Timestamp.now(),

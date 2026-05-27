@@ -22,7 +22,8 @@ export async function canUseOcr(userId) {
   const { tier, ocrScansUsed = 0, validUntil } = data.subscription;
 
   // Check if subscription is expired
-  const isExpired = validUntil && validUntil < Date.now();
+  const validUntilMs = validUntil?.toMillis ? validUntil.toMillis() : validUntil;
+  const isExpired = validUntilMs && validUntilMs < Date.now();
   const effectiveTier = isExpired ? 'free' : tier;
 
   // VIP = unlimited OCR
@@ -111,7 +112,8 @@ export async function canJoinGroup(userId) {
   const validUntil = data?.subscription?.validUntil;
 
   // Check if subscription is expired
-  const isExpired = validUntil && validUntil < Date.now();
+  const validUntilMs = validUntil?.toMillis ? validUntil.toMillis() : validUntil;
+  const isExpired = validUntilMs && validUntilMs < Date.now();
   const effectiveTier = isExpired ? 'free' : tier;
 
   // Get user's active groups
@@ -154,7 +156,8 @@ export async function canAddGroupMember(groupId, userId) {
   const validUntil = userData?.subscription?.validUntil;
 
   // Check if subscription is expired
-  const isExpired = validUntil && validUntil < Date.now();
+  const validUntilMs = validUntil?.toMillis ? validUntil.toMillis() : validUntil;
+  const isExpired = validUntilMs && validUntilMs < Date.now();
   const effectiveTier = isExpired ? 'free' : tier;
 
   const groupDoc = await getDoc(doc(db, 'groups', groupId));
@@ -195,7 +198,8 @@ export function isSubscriptionActive(subscription) {
     return false;
   }
 
-  return subscription.validUntil > Date.now();
+  const validUntilMs = subscription.validUntil?.toMillis ? subscription.validUntil.toMillis() : subscription.validUntil;
+  return validUntilMs > Date.now();
 }
 
 /**

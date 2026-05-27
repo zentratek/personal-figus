@@ -38,7 +38,8 @@ export function useSubscription(userId) {
         };
 
         // Check if expired
-        const isExpired = sub.validUntil && sub.validUntil < Date.now();
+        const validUntilMs = sub.validUntil?.toMillis ? sub.validUntil.toMillis() : sub.validUntil;
+        const isExpired = validUntilMs && validUntilMs < Date.now();
         if (isExpired && sub.tier !== 'free') {
           sub.tier = 'free'; // Downgrade to free if expired
         }

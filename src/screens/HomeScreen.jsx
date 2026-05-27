@@ -9,7 +9,7 @@ import { ActionButtons } from '../components/home/ActionButtons';
 import { MatchesCard } from '../components/home/MatchesCard';
 import { PricingModal } from '../components/subscription/PricingModal';
 import { getUserStickers } from '../services/stickerService';
-import { calculateStats } from '../services/mockData';
+import { calculateStats, TOTAL_STICKERS } from '../services/mockData';
 import { subscribeToNotifications, markNotificationAsRead, deleteNotification } from '../services/notificationService';
 import { useAuth } from '../contexts/AuthContext';
 import { useSubscription } from '../hooks/useSubscription';
@@ -149,7 +149,7 @@ export function HomeScreen() {
         </div>
 
         {/* Stats Card */}
-        <StatsCard stats={stats} total={stickers.length} />
+        <StatsCard stats={stats} total={TOTAL_STICKERS} />
 
         {/* Pricing Promo Card */}
         {!subscription.loading && subscription.isFree && (

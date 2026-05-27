@@ -1,6 +1,12 @@
 // Mock data for Copa Mundial FIFA 2026™
 // 48 selecciones × 20 stickers = 960 team stickers
+// FWC: 20 stickers
+// CC: 14 stickers
+// Total: 994 stickers
 // Based on official Panini album specifications
+
+// Total stickers in the album
+export const TOTAL_STICKERS = 994; // 48 teams × 20 + FWC 20 + CC 14
 
 // Official 48 teams qualified for FIFA World Cup 2026™
 export const TEAMS = [
@@ -63,6 +69,10 @@ export const TEAMS = [
 
   // OFC - Oceania (1 team)
   { code: 'NZL', name: 'Nueva Zelanda', flagCode: 'nz', color1: '#000000', color2: '#FFFFFF' },
+
+  // Special Groups
+  { code: 'FWC', name: 'FIFA World Cup', flagCode: '🏆', color1: '#FF2D8E', color2: '#C6FF3E' },
+  { code: 'CC', name: 'Coca-Cola', flagCode: '🥤', color1: '#F40009', color2: '#FFFFFF' },
 ];
 
 // Mock player names by position
@@ -83,25 +93,40 @@ const generatePlayerName = (team, position, index) => {
 };
 
 /**
- * Generates 960 mock stickers for the Copa Mundial FIFA 2026™
- * Now using format: COUNTRY_CODE NUMBER (e.g., ARG 1, ARG 2, ..., BRA 1, BRA 2, ...)
+ * Generates mock stickers for the Copa Mundial FIFA 2026™
+ * - 48 teams × 20 stickers = 960 team stickers
+ * - FWC group: 20 stickers (FWC 1 - FWC 20)
+ * - CC group: 14 stickers (CC 1 - CC 14)
+ * Total: 994 stickers
+ * Format: COUNTRY_CODE NUMBER (e.g., ARG 1, ARG 2, ..., BRA 1, BRA 2, ...)
  * @param {string} userId - User ID for composite keys
- * @returns {Array} Array of 960 sticker objects
+ * @returns {Array} Array of sticker objects
  */
 export const generateMockStickers = (userId = 'mock-user') => {
   const stickers = [];
 
   TEAMS.forEach(team => {
-    for (let i = 1; i <= 20; i++) {
-      // New format: "ARG 1", "ARG 2", etc.
+    // Determine max stickers for this team/group
+    let maxStickers = 20; // Default for teams
+    if (team.code === 'CC') {
+      maxStickers = 14; // Coca-Cola has only 14
+    }
+
+    for (let i = 1; i <= maxStickers; i++) {
+      // New format: "ARG 1", "ARG 2", "FWC 1", "CC 1", etc.
       const stickerId = `${team.code} ${i}`;
-      const number = i; // Number is now 1-20 per team
+      const number = i;
 
       // Determine position
       let position;
-      if (i === 1) position = 'BADGE';
-      else if (i === 2) position = 'GROUP';
-      else position = POSITIONS[Math.floor(Math.random() * POSITIONS.length)];
+      // Special groups (FWC, CC) don't have BADGE/GROUP structure
+      if (team.code === 'FWC' || team.code === 'CC') {
+        position = 'SPECIAL';
+      } else {
+        if (i === 1) position = 'BADGE';
+        else if (i === 2) position = 'GROUP';
+        else position = POSITIONS[Math.floor(Math.random() * POSITIONS.length)];
+      }
 
       // Random status for demo (30% owned, 10% repeated, 60% needed)
       const rand = Math.random();
@@ -124,13 +149,13 @@ export const generateMockStickers = (userId = 'mock-user') => {
         albumId: 'copa-mundial-fifa-2026',
         status,
         count,
-        number, // Now 1-20 per team
+        number,
         team: team.code,
         teamName: team.name,
         flagCode: team.flagCode,
         playerName: generatePlayerName(team, position, i),
         position,
-        isSpecial: i === 1, // Badge is special (now position 1)
+        isSpecial: i === 1 && team.code !== 'FWC' && team.code !== 'CC', // Badge is special (position 1) for teams
         color1: team.color1,
         color2: team.color2
       });
